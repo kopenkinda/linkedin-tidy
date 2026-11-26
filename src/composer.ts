@@ -50,21 +50,43 @@ function dock(dialog: HTMLDialogElement) {
   }, { once: true });
 }
 
+const TAB_BAR = '[componentkey="feed-tab-host_tab-bar"]';
+const feedTabs = () => [...document.querySelectorAll<HTMLElement>(`${TAB_BAR} [role="button"]`)];
 // LinkedIn's sharebox stays mounted but hidden; its "Start a post" button opens the composer.
+const shareboxButton = () => document.getElementById('draft-text-replaceable-component')?.closest<HTMLElement>('[role="button"]');
+
+// Set while a composer we opened from the Network tab is up; placeCompose() switches back
+// once it's gone. Dismissing doesn't fire `close`: LinkedIn unmounts the dialog and goes
+// back in history.
+let returnToNetwork = false;
+
 async function openComposer(media: boolean) {
-  const start = document.getElementById('draft-text-replaceable-component')?.closest<HTMLElement>('[role="button"]');
-  if (!start) return;
+  let start = shareboxButton();
+  // LinkedIn only mounts the sharebox in the "For you" feed. From "Network", switch to For
+  // you to open the composer.
+  const fromNetwork = !start;
+  if (!start) {
+    const [forYou] = feedTabs();
+    if (!forYou) return;
+    forYou.click();
+    try {
+      start = await until(shareboxButton);
+    } catch (error) {
+      console.warn('[LinkedIn Plus]', error);
+      return;
+    }
+  }
   if (config().inlineComposer) {
     document.getElementById('lt-compose')?.scrollIntoView({ block: 'nearest' });
     dockRequestedAt = Date.now();
   }
   start.click();
-  if (!media) return;
-  // The composer's own Media button takes images and video; the sharebox's Photo and Video
-  // buttons each accept only one kind.
   try {
-    const dialog = await until(() => document.querySelector(`dialog[open]:has(${COMPOSE})`));
-    (await until(() => dialog.querySelector('svg#image-outline-medium')?.closest('button'))).click();
+    const dialog = await until(() => document.querySelector<HTMLDialogElement>(`dialog[open]:has(${COMPOSE})`));
+    returnToNetwork = fromNetwork;
+    // The composer's own Media button takes images and video; the sharebox's Photo and
+    // Video buttons each accept only one kind.
+    if (media) (await until(() => dialog.querySelector('svg#image-outline-medium')?.closest('button'))).click();
   } catch (error) {
     console.warn('[LinkedIn Plus]', error);
   }
@@ -84,18 +106,25 @@ function renderCompose(): HTMLElement {
   return root;
 }
 
+// Above the For you / Network tabs, so it stays when the feed below switches.
 export function placeCompose(): void {
-  const sharebox = document.querySelector('[data-testid="mainFeed"] > :has(#draft-text-replaceable-component)');
-  if (!sharebox) {
+  const tabs = document.querySelector(TAB_BAR);
+  if (!tabs) {
     document.getElementById('lt-compose')?.remove();
     return;
   }
   const el = document.getElementById('lt-compose') ?? renderCompose();
-  if (sharebox.previousElementSibling !== el) sharebox.before(el);
+  if (tabs.previousElementSibling !== el) tabs.before(el);
   // LinkedIn may unmount the composer without closing it (no `close` event).
   if (el.hasAttribute('data-docked') && !document.querySelector('dialog[data-lt-docked][open]')) {
     el.removeAttribute('data-docked');
     el.style.removeProperty('min-height');
+  }
+  if (returnToNetwork && !document.querySelector(`dialog[open] ${COMPOSE}`)) {
+    returnToNetwork = false;
+    // The dialog unmounts before LinkedIn's history.back() lands; switching earlier gets
+    // undone by that navigation.
+    until(() => !location.pathname.startsWith('/sharing/')).then(() => feedTabs()[1]?.click(), () => {});
   }
 }
 

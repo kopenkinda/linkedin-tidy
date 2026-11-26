@@ -40,6 +40,14 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 /* Left rail: only our profile card and games row. */
 aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games, #lt-settings) { display: none !important; }
 
+/* Feed tabs (For you / Network): underline tabs across the feed, under our composer.
+   The white card is on an inner wrapper; the tabs keep LinkedIn's own hover. */
+[componentkey="feed-tab-host_tab-bar"] { padding: 0; border-radius: 0; background: none; box-shadow: none; border-bottom: 1px solid var(--lt-border); }
+[componentkey="feed-tab-host_tab-bar"] :not([role="button"], [role="button"] *) { background: none; }
+[componentkey="feed-tab-host_tab-bar"] div:has([role="button"]):not([role="button"] *) { width: 100%; }
+[componentkey="feed-tab-host_tab-bar"] [role="button"] { flex: 1; }
+[componentkey="feed-tab-host_tab-bar"] [role="button"] > div:last-child { justify-content: center; }
+
 /* Feed junk */
 [data-testid="mainFeed"] > :has([componentkey^="Launchpad"]) { display: none !important; }
 :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"] { border-radius: var(--lt-radius); }
