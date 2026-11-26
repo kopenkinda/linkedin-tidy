@@ -132,9 +132,42 @@ function tagParts(screen: Element) {
   tag(bottom, 'flatten');
   tag(rows, 'flatten');
   for (const row of rows.children) {
-    if (row.querySelector('svg#emoji-outline-medium')) tag(row, 'toolbar');
+    if (row.querySelector('svg#emoji-outline-medium')) tagToolbar(row);
   }
   tag(rows.lastElementChild, 'footer');
+}
+
+// Toolbar: [Proofread] [tools: emoji, bold, [insert: media, celebration, ... + "more"]].
+function tagToolbar(toolbar: Element) {
+  tag(toolbar, 'toolbar');
+  // Proofread and the tools share a wrapper a level or two down.
+  let row = toolbar;
+  while (row.children.length === 1 && row.firstElementChild) row = row.firstElementChild;
+  tag(row, 'toolrow');
+  for (const part of row.children) {
+    if (part.querySelector('svg#premium-chip-fill-color-small')) tag(part, 'proofread');
+    else if (part.querySelector('svg#emoji-outline-medium')) {
+      tag(part, 'tools');
+      for (const group of part.children) {
+        if (!group.querySelector('svg#image-outline-medium')) continue;
+        tag(group, 'insert');
+        // The +/× toggle that shows Event, Job, Poll and Document inline.
+        const toggle = group.lastElementChild;
+        if (toggle?.querySelector('svg#plus-outline-medium, svg#xmark-outline-medium') && !toggle.querySelector('svg#image-outline-medium')) tag(toggle, 'more');
+      }
+    }
+  }
+}
+
+// The "more" toggle only hides content types behind a click without saving space, so we
+// expand it once and hide the toggle. Throttled in case LinkedIn re-renders it collapsed.
+let lastExpand = 0;
+function expandContentTypes(screen: Element) {
+  const plus = screen.querySelector('[data-lt-c="more"] svg#plus-outline-medium')?.closest('button');
+  if (plus && Date.now() - lastExpand > 1000) {
+    lastExpand = Date.now();
+    plus.click();
+  }
 }
 
 const labelOf = (chip: Element) => document.getElementById(chip.getAttribute('aria-labelledby') ?? '')?.textContent?.trim() ?? '';
@@ -174,6 +207,7 @@ export function enhanceComposer(): void {
   if (!screen) return;
   const apply = () => {
     tagParts(screen);
+    expandContentTypes(screen);
     relabel(screen);
   };
   apply();

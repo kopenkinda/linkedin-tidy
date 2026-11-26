@@ -173,7 +173,13 @@ dialog:has([data-sdui-screen$="ShareCompose"]):focus-visible,
 [popover]:has(input[type="radio"]):focus-visible { outline: none; }
 [data-lt-c="avatar"] { zoom: 0.625; } /* 64px -> 40px, keeps a group's logo badge in place */
 [data-lt-c="flatten"] { display: contents !important; }
-[data-lt-c="toolbar"] { order: -1; padding-inline: 16px; border-bottom: 1px solid var(--lt-border); }
+[data-lt-c="toolbar"] { order: -1; display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--lt-border); }
+/* Formatting (emoji, bold) | inserts (media, celebration, event, job, poll, document) ... Proofread */
+[data-lt-c="toolrow"] { flex: 1; display: flex; align-items: center; gap: 8px; }
+[data-lt-c="proofread"] { order: 2; margin-left: auto; }
+[data-lt-c="tools"], [data-lt-c="tools"] div { align-items: center; gap: 4px; }
+[data-lt-c="insert"] { margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--lt-border); }
+[data-lt-c="more"] { display: none !important; }
 [data-lt-c="main"] { position: relative; }
 /* The header is sticky, which would make it the chips' containing block. */
 [data-lt-c="main"] > :has([data-lt-c="chips"]) { position: static !important; }
@@ -214,6 +220,10 @@ dialog:has([data-sdui-screen$="ShareCompose"]):focus-visible,
   border-radius: 8px;
 }
 [data-sdui-screen$="ShareCompose"] :is(div:has(> svg#text-bold-fill-medium), div:has(> div > svg#text-bold-fill-medium)) { display: grid; place-items: center; padding: 0; }
+[data-lt-c="tools"] :is(button, a) > span:has(> svg[id$="-medium"]),
+[data-lt-c="tools"] div:has(> div > svg#text-bold-fill-medium) { border: 1px solid var(--lt-border); }
+[data-lt-c="tools"] :is(button, a):hover > span:has(> svg[id$="-medium"]),
+[data-lt-c="tools"] div:has(> div > svg#text-bold-fill-medium):hover { background: var(--lt-muted); }
 [data-sdui-screen$="ShareCompose"] div:has(> div > div > div > svg#text-bold-fill-medium) { display: grid; align-items: center; }
 /* Text buttons (Proofread, Post): 32px, 8px radius. */
 [data-sdui-screen$="ShareCompose"] button > span:has(> svg#premium-chip-fill-color-small) { height: 32px; border-radius: 8px; }
