@@ -93,8 +93,9 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 /* Promoted posts and posts with muted words, tagged by feed.ts. The settings toggle the
    html attributes. A muted post shrinks to one line you can click to show it anyway. */
 html[data-lt-hide-ads] [data-lt-ad="true"] { display: none; }
-/* LinkedIn's own "Try LinkedIn Ads" card: no author or post menu, just an offer link. */
-html[data-lt-hide-ads] :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"]:has(a[href*="business.linkedin.com/marketing-solutions"]):not(:has(button[aria-label^="Open control menu"])) { display: none; }
+/* LinkedIn promoting itself ("Try LinkedIn Ads", "Hire top talent"): no author or post
+   menu, an offer link tagged src=li-ghom and "galapagos" artwork. */
+html[data-lt-hide-ads] :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"]:has(a[href*="src=li-ghom"], img[src*="/galapagos-"]):not(:has(button[aria-label^="Open control menu"])) { display: none; }
 html:not([data-lt-collapse-filtered]) [data-lt-muted]:not([data-lt-revealed]) { display: none; }
 html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
   flex-direction: row;
