@@ -29,8 +29,7 @@ export function installComposerDock(): void {
     }
     return showModal.call(this);
   };
-  // The locked Network tab (see placeCompose) keeps pointer events so its tooltip shows;
-  // stop its clicks before React sees them.
+  // Stop clicks on the locked Network tab (see placeCompose) before React sees them.
   for (const type of ['click', 'keydown'] as const) {
     window.addEventListener(type, (e) => {
       if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return;
@@ -136,13 +135,8 @@ export function placeCompose(): void {
   const writing = !!document.querySelector('dialog[data-lt-docked][open]');
   if (network && network.hasAttribute('data-lt-locked') !== writing) {
     network.toggleAttribute('data-lt-locked', writing);
-    if (writing) {
-      network.setAttribute('aria-disabled', 'true');
-      network.title = 'Post or close the composer first. Switching feeds would discard your post.';
-    } else {
-      network.removeAttribute('aria-disabled');
-      network.removeAttribute('title');
-    }
+    if (writing) network.setAttribute('aria-disabled', 'true');
+    else network.removeAttribute('aria-disabled');
   }
   if (returnToNetwork && !document.querySelector(`dialog[open] ${COMPOSE}`)) {
     returnToNetwork = false;
