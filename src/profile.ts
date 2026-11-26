@@ -112,8 +112,16 @@ const ACTION_ICONS: [id: string, svg: Icon][] = [
 ];
 const actionIcon = (id: string) => ACTION_ICONS.find(([prefix]) => id.startsWith(prefix))?.[1];
 
+// The current companies and school next to the headline ("Stan + 2 more", "Universitat
+// Pompeu Fabra"), told apart from other figures by LinkedIn's placeholder logo. Clicking
+// one scrolls to Experience or Education.
+const topOrgs = (page: Element) =>
+  [...page.querySelectorAll<HTMLElement>('[componentkey$="Topcard"] [role="button"]:has(figure svg:is([id^="company-"], [id^="school-"]))')]
+    .filter((el) => el.getClientRects().length);
+
 export interface Mini extends Person {
   stats: { value: string; label: string; href?: string }[];
+  orgs: { name: string; logo?: string }[];
   actions: { label: string; icon: string }[];
 }
 
@@ -121,15 +129,18 @@ function readMini(page: Element): Mini | null {
   const person = readPerson(page);
   if (!person) return null;
   // "409,476 followers", "500+ connections": the top card's lines that start with a number.
+  // Some profiles put the label on a line of its own ("500+", "connections").
   const stats = [...page.querySelectorAll('[componentkey$="Topcard"] p')].flatMap((p) => {
-    const m = text(p).match(/^(\d[\d\s.,]*\+?)\s+(\S.*)$/);
-    return m?.[1] && m[2] ? [{ value: m[1], label: m[2], href: p.closest('a')?.href }] : [];
+    const m = text(p).match(/^(\d[\d\s.,]*\+?)(?:\s+(\S.*))?$/);
+    const label = m?.[2] ?? text(p.nextElementSibling);
+    return m?.[1] && label ? [{ value: m[1], label, href: p.closest('a')?.href }] : [];
   });
+  const orgs = topOrgs(page).map((el) => ({ name: text(el), logo: el.querySelector('img')?.src }));
   const actions = topActions(page).map((el) => ({
     label: text(el) || (el.getAttribute('aria-label') ?? ''),
     icon: el.querySelector('svg[id]')?.id ?? '',
   }));
-  return { ...person, stats, actions };
+  return { ...person, stats, orgs, actions };
 }
 
 // Always at the top of the sidebar, with stand-ins for the top card's buttons that click the
@@ -140,6 +151,8 @@ function renderMini(m: Mini): HTMLElement {
     personHead(m),
     m.stats.length > 0 && h('p', { class: 'lt-mini-stats' },
       m.stats.map((st) => h(st.href ? 'a' : 'span', { href: st.href }, h('strong', {}, st.value), ` ${st.label}`))),
+    m.orgs.length > 0 && h('div', { class: 'lt-mini-orgs' },
+      m.orgs.map((o, i) => h('button', { type: 'button', 'data-org': i }, o.logo && h('img', { src: o.logo, alt: '' }), h('span', {}, o.name)))),
     m.actions.length > 0 && h('div', { class: 'lt-mini-actions' },
       m.actions.map((a, i) => {
         const svg = actionIcon(a.icon);
@@ -148,9 +161,13 @@ function renderMini(m: Mini): HTMLElement {
           svg && icon(svg), !more && a.label);
       })));
   card.addEventListener('click', (e) => {
-    const fake = (e.target as Element).closest<HTMLElement>('[data-index]');
+    const target = e.target as Element;
+    const fake = target.closest<HTMLElement>('[data-index]');
+    const org = target.closest<HTMLElement>('[data-org]');
     const page = document.querySelector(PROFILE);
-    if (fake && page) void press(page, Number(fake.dataset.index), fake);
+    if (!page) return;
+    if (fake) void press(page, Number(fake.dataset.index), fake);
+    if (org) topOrgs(page)[Number(org.dataset.org)]?.click();
   });
   return card;
 }

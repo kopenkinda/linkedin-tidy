@@ -55,6 +55,12 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 #lt-mini .lt-mini-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: -4px 16px 12px; color: var(--lt-muted-fg); }
 #lt-mini .lt-mini-stats strong { color: var(--lt-fg); font-weight: 600; }
 #lt-mini .lt-mini-stats a:hover { background: none; text-decoration: underline; }
+#lt-mini .lt-mini-orgs { display: grid; gap: 6px; margin: 0 16px 12px; }
+#lt-mini .lt-mini-orgs button {
+  display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: var(--lt-fg); font: inherit; font-weight: 600; text-align: start; cursor: pointer;
+  &:hover span { text-decoration: underline; }
+  & img { flex: none; width: 24px; height: 24px; border-radius: 4px; object-fit: contain; }
+}
 #lt-mini .lt-mini-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
 #lt-mini .lt-mini-actions button {
   display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border: 1px solid var(--lt-primary); border-radius: 9999px;
