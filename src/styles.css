@@ -80,6 +80,8 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
       border-radius: 9999px;
       background: var(--lt-bg);
     }
+    /* The pill no longer fills the row, so push the ⋯ and × back to the right. */
+    & > button:first-of-type { margin-left: auto; }
     & figure { width: 24px; height: 24px; }
     & p { font-size: 13px; line-height: 18px; color: var(--lt-fg); }
   }
