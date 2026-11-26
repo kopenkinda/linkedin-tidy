@@ -49,10 +49,20 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
   & > footer, & > aside > div:first-child { display: none !important; }
   & :is(#lt-dashboard, #lt-network) { margin: 0; }
 }
-/* My Network's Premium upsells ("People who viewed your profile", "People interested in
-   services like yours"): their links go to Premium's sales page. And its puzzles. */
-[data-sdui-screen*=".mynetwork."] section:has(a[href*="/premium/products/"]),
-html[data-lt-hide-games] [data-sdui-screen*=".mynetwork."] section:has(a[href*="/games/"]) { display: none !important; }
+/* My Network: its Premium upsells ("People who viewed your profile", "People interested in
+   services like yours", whose links go to Premium's sales page), its puzzles, and "No
+   pending invitations" (an empty list): Invitations is in our sidebar (network.ts). */
+[data-sdui-screen*=".mynetwork."] section:is(:has(a[href*="/premium/products/"]), :has(a[href*="/games/"])),
+[data-sdui-screen*=".mynetwork."] section[componentkey="pending-invitations-preview"]:not(:has([role="list"] > :not(hr))) { display: none !important; }
+/* Grow / Catch up: the feed's underline tabs. */
+#workspace section:has(> div > div > nav a[href*="/mynetwork/grow/"]) {
+  padding: 0 !important; border-radius: 0; background: none; box-shadow: none; border-bottom: 1px solid var(--lt-border);
+  & nav { flex: 1; }
+  & ul { width: 100%; }
+  & li { display: flex; flex: 1; }
+  & a { flex: 1; justify-content: center; }
+}
+#lt-network .lt-menu a[aria-current="page"] { background: var(--lt-muted); font-weight: 600; }
 /* The bar LinkedIn slides in once the top card scrolls away: our mini profile in the
    sidebar does its job (profile.ts). */
 [data-sdui-screen$=".profile.Profile"] [role="toolbar"] { display: none; }
