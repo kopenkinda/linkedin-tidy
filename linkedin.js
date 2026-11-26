@@ -121,6 +121,39 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 #lt-settings button[aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
 #lt-settings svg { width: 16px; height: 16px; }
 
+/* Composer. Our box replaces LinkedIn's sharebox (hidden, but still clicked through).
+   When opened from it, LinkedIn's composer dialog is anchored onto our box with no
+   backdrop, and our box grows to the dialog's height, so it reads as inline. */
+[data-testid="mainFeed"] > :has(#draft-text-replaceable-component) { display: none !important; }
+#lt-compose { display: grid; gap: 8px; padding: 12px; anchor-name: --lt-compose; }
+#lt-compose button, #lt-compose .lt-compose-bar a { all: unset; box-sizing: border-box; cursor: pointer; }
+#lt-compose .lt-compose-input { padding: 10px 12px; border: 1px solid var(--lt-border); border-radius: 8px; color: var(--lt-muted-fg); cursor: text; }
+#lt-compose .lt-compose-input:hover { background: var(--lt-muted); }
+#lt-compose .lt-compose-bar { display: flex; align-items: center; gap: 4px; }
+#lt-compose .lt-compose-as { margin-right: auto; padding-left: 4px; color: var(--lt-muted-fg); }
+#lt-compose .lt-compose-as strong { color: var(--lt-fg); font-weight: 500; }
+#lt-compose .lt-compose-bar :is(button, a) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-weight: 500; }
+#lt-compose .lt-compose-bar :is(button, a):hover { background: var(--lt-muted); }
+#lt-compose :is(button, a):focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
+#lt-compose svg { width: 16px; height: 16px; color: var(--lt-muted-fg); }
+html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"]) {
+  position: fixed;
+  position-anchor: --lt-compose;
+  inset: auto;
+  top: anchor(top);
+  left: anchor(left);
+  width: anchor-size(width);
+  max-width: none;
+  margin: 0;
+  transform: none;
+  translate: none;
+  box-shadow: none;
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  background: var(--lt-card);
+}
+html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backdrop { background: transparent; }
+
 /* Footer links, folded into the nav's More menu */
 .lt-about { margin-top: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }
 .lt-about summary { display: flex; justify-content: space-between; padding: 8px 16px; cursor: pointer; list-style: none; color: var(--lt-muted-fg); }
@@ -182,6 +215,8 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
     bookmark: [['path', { d: 'm19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z' }]],
     sun: [['circle', { cx: 12, cy: 12, r: 4 }], ...['M12 2v2', 'M12 20v2', 'm4.93 4.93 1.41 1.41', 'm17.66 17.66 1.41 1.41', 'M2 12h2', 'M20 12h2', 'm6.34 17.66-1.41 1.41', 'm19.07 4.93-1.41 1.41'].map((d) => ['path', { d }])],
     moon: [['path', { d: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' }]],
+    image: [['rect', { width: 18, height: 18, x: 3, y: 3, rx: 2 }], ['circle', { cx: 9, cy: 9, r: 2 }], ['path', { d: 'm21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21' }]],
+    article: [['path', { d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z' }], ['path', { d: 'M14 2v4a2 2 0 0 0 2 2h4' }], ['path', { d: 'M16 13H8' }], ['path', { d: 'M16 17H8' }], ['path', { d: 'M10 9H8' }]],
     monitor: [['rect', { width: 20, height: 14, x: 2, y: 3, rx: 2 }], ['path', { d: 'M8 21h8' }], ['path', { d: 'M12 17v4' }]],
     settings: [['path', { d: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z' }], ['circle', { cx: 12, cy: 12, r: 3 }]],
   };
@@ -401,6 +436,82 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
     return root;
   }
 
+  // --- Composer -----------------------------------------------------------------------
+
+  const COMPOSE_DIALOG = 'dialog[open]:has([data-sdui-screen$="ShareCompose"])';
+  // pending: we asked LinkedIn to open it; open: it is showing anchored to our box.
+  let composer = { state: 'idle', since: 0 };
+  const composerSize = new ResizeObserver(([entry]) => {
+    const box = document.getElementById('lt-compose');
+    if (box) box.style.minHeight = `${entry.borderBoxSize[0].blockSize}px`;
+  });
+
+  function waitFor(find, then, timeout = 4000) {
+    const start = Date.now();
+    (function poll() {
+      const el = find();
+      if (el) then(el);
+      else if (Date.now() - start < timeout) requestAnimationFrame(poll);
+    })();
+  }
+
+  // LinkedIn's sharebox stays mounted but hidden; its "Start a post" button opens the composer.
+  function openComposer(then) {
+    const start = document.getElementById('draft-text-replaceable-component')?.closest('[role="button"]');
+    if (!start) return;
+    document.getElementById('lt-compose').scrollIntoView({ block: 'nearest' });
+    document.documentElement.setAttribute('data-lt-inline', '');
+    composer = { state: 'pending', since: Date.now() };
+    start.click();
+    if (then) waitFor(() => document.querySelector(COMPOSE_DIALOG), then);
+  }
+
+  function syncComposer() {
+    const dialog = document.querySelector(COMPOSE_DIALOG);
+    if (dialog && composer.state === 'pending') {
+      composer = { state: 'open', since: Date.now() };
+      composerSize.observe(dialog);
+    } else if (!dialog && (composer.state === 'open' || (composer.state === 'pending' && Date.now() - composer.since > 4000))) {
+      composer = { state: 'idle', since: 0 };
+      composerSize.disconnect();
+      document.documentElement.removeAttribute('data-lt-inline');
+      document.getElementById('lt-compose')?.style.removeProperty('min-height');
+    }
+  }
+
+  function renderCompose({ name }) {
+    const root = h('section', { id: 'lt-compose', class: 'lt-card', 'aria-label': 'Create a post' },
+      h('button', { type: 'button', class: 'lt-compose-input', 'data-action': 'write' }, 'Write a post…'),
+      h('div', { class: 'lt-compose-bar' },
+        name && h('span', { class: 'lt-compose-as' }, 'Posting as ', h('strong', {}, name)),
+        h('button', { type: 'button', 'data-action': 'media' }, icon(ICONS.image), 'Photo or video'),
+        h('a', { href: 'https://www.linkedin.com/article/new/' }, icon(ICONS.article), 'Article')));
+    root.addEventListener('click', (e) => {
+      const action = e.target.closest('[data-action]')?.dataset.action;
+      if (action === 'write') openComposer();
+      // The composer's own Media button takes images and video; the sharebox's
+      // Photo and Video buttons each accept only one kind.
+      if (action === 'media') openComposer((dialog) => waitFor(() => dialog.querySelector('svg#image-outline-medium')?.closest('button'), (b) => b.click()));
+    });
+    return root;
+  }
+
+  function placeCompose(name) {
+    const sharebox = document.querySelector('[data-testid="mainFeed"] > :has(#draft-text-replaceable-component)');
+    if (!sharebox) return document.getElementById('lt-compose')?.remove();
+    let el = document.getElementById('lt-compose');
+    if (!el || signatures['lt-compose'] !== name) {
+      const next = renderCompose({ name });
+      if (el) {
+        next.style.minHeight = el.style.minHeight;
+        el.replaceWith(next);
+      }
+      el = next;
+      signatures['lt-compose'] = name;
+    }
+    if (sharebox.previousElementSibling !== el) sharebox.before(el);
+  }
+
   // --- Nav ------------------------------------------------------------------------
 
   function addFooterToMoreMenu() {
@@ -421,11 +532,15 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
       const games = sync('lt-games', readGames(), renderGames, profile ?? identity);
       sync('lt-settings', { theme: themePreference() }, renderSettings, games ?? profile ?? identity);
     }
+    placeCompose(identity?.querySelector('a[aria-label] p')?.textContent.trim());
+    syncComposer();
     addFooterToMoreMenu();
   }
 
   addStyle('lt-style', CSS);
   applyPalette();
+  // A dialog can close without any DOM change; `close` doesn't bubble, so listen in capture.
+  document.addEventListener('close', () => update(), true);
 
   let queued = false;
   new MutationObserver(() => {
