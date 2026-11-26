@@ -153,6 +153,58 @@ dialog[data-lt-docked][open] {
 }
 header:has(nav a[href*="/jobs/"]) { position: relative; z-index: 2; }
 
+/* LinkedIn's composer, restyled (docked or popup). Hooks are structural: the screen id,
+   icon ids (svg#…-medium), aria roles, and the inline aspect-ratio that fixes its size. */
+[data-sdui-screen$="ShareCompose"] :is(p, span, [role="textbox"]) { font-size: 14px; line-height: 20px; }
+/* Size: LinkedIn pins it to 800×640 (aspect-ratio 1.25 on a wrapper); let content decide. */
+dialog:has([data-sdui-screen$="ShareCompose"]) { height: fit-content; max-height: calc(100dvh - 64px); }
+[data-sdui-screen$="ShareCompose"] [style*="aspect-ratio"] { aspect-ratio: auto !important; }
+[data-sdui-screen$="ShareCompose"] [data-testid="lazy-column"] { min-height: 96px; }
+/* Avatar next to the "post as" switcher (not media inside the post). */
+[data-sdui-screen$="ShareCompose"] figure:not(#ShareBoxpreviewCard figure, #ShareBoxlinkPreview figure, [role="textbox"] figure),
+[data-sdui-screen$="ShareCompose"] figure:not(#ShareBoxpreviewCard figure, #ShareBoxlinkPreview figure, [role="textbox"] figure) :is(img, svg) { width: 40px; height: 40px; }
+/* Visibility, comments and collaborators: select-style triggers. The identity switcher is a
+   borderless one. LinkedIn's filled caret becomes a chevron. */
+[data-sdui-screen$="ShareCompose"] [role="button"]:is([aria-expanded], :has(svg#venn-diagram-outline-small)) > div:last-child {
+  box-sizing: border-box;
+  height: 32px;
+  gap: 6px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--lt-border);
+  border-radius: 8px;
+  background: transparent;
+}
+[data-sdui-screen$="ShareCompose"] [role="button"][aria-label][aria-expanded] > div:last-child { border-color: transparent; padding-left: 8px; }
+[data-sdui-screen$="ShareCompose"] [role="button"]:hover > div:last-child { background: var(--lt-muted); }
+[data-sdui-screen$="ShareCompose"] svg#caret-down-fill-small { display: none; }
+[data-sdui-screen$="ShareCompose"] [role="button"][aria-expanded] > div:last-child::after {
+  content: "";
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  opacity: 0.6;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / 16px no-repeat;
+}
+/* Toolbar: 32px ghost icon buttons (emoji, media, more, schedule; bold is a plain div). */
+[data-sdui-screen$="ShareCompose"] :is(button, a) { min-height: 32px; }
+[data-sdui-screen$="ShareCompose"] svg[id$="-medium"] { width: 20px; height: 20px; min-width: 20px; min-height: 20px; }
+[data-sdui-screen$="ShareCompose"] :is(button, a) > span:has(> svg[id$="-medium"]),
+[data-sdui-screen$="ShareCompose"] :is(div:has(> svg#text-bold-fill-medium), div:has(> div > svg#text-bold-fill-medium)) {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 6px;
+  border-radius: 8px;
+}
+[data-sdui-screen$="ShareCompose"] :is(div:has(> svg#text-bold-fill-medium), div:has(> div > svg#text-bold-fill-medium)) { display: grid; place-items: center; padding: 0; }
+[data-sdui-screen$="ShareCompose"] div:has(> div > div > div > svg#text-bold-fill-medium) { display: grid; align-items: center; }
+/* Text buttons (Proofread, Post): 32px, 8px radius. */
+[data-sdui-screen$="ShareCompose"] button > span:has(> svg#premium-chip-fill-color-small) { height: 32px; border-radius: 8px; }
+[data-sdui-screen$="ShareCompose"] button > span:not(:has(svg)) { box-sizing: border-box; height: 32px; padding: 0 16px; border-radius: 8px; }
+
 /* Footer links, folded into the nav's More menu */
 .lt-about { margin-top: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }
 .lt-about summary { display: flex; justify-content: space-between; padding: 8px 16px; cursor: pointer; list-style: none; color: var(--lt-muted-fg); }

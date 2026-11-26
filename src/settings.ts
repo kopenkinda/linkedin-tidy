@@ -24,6 +24,13 @@ function applyTheme(preference: Theme) {
 
 function setTheme(preference: Theme) {
   const attrs = '; domain=www.linkedin.com; path=/; max-age=15552000; secure; samesite=lax';
+  for (const name of ['li_theme', 'li_theme_set']) {
+    // A second copy (host-only, or on .linkedin.com) can sit next to the one LinkedIn's
+    // settings page writes. The browser sends both and themePreference() reads the older
+    // one, so the toggle acts on a stale value. Drop the other copies first.
+    document.cookie = `${name}=; path=/; max-age=0`;
+    document.cookie = `${name}=; domain=.linkedin.com; path=/; max-age=0`;
+  }
   document.cookie = `li_theme=${preference}${attrs}`;
   document.cookie = `li_theme_set=user${attrs}`;
   applyTheme(preference);
