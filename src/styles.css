@@ -492,12 +492,14 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 body:has(.msg__list-detail) #msg-overlay { display: none; }
 .authentication-outlet:has(.msg__list-detail) { padding-top: 0 !important; }
 .msg-conversations-container__title-row:has(#lt-inboxes) { justify-content: space-between; gap: 8px; }
+/* Ember's own colour tokens follow its theme; ours (light-dark()) only follow color-scheme,
+   which Ember's dark mode doesn't always set. */
 #lt-inboxes {
   display: flex; flex: none; align-items: center; gap: 6px; padding-right: 12px; font-family: var(--lt-font); font-size: 13px;
-  & a { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 4px; border: 1px solid var(--lt-border); border-radius: 9999px; color: var(--lt-fg); font-weight: 500; text-decoration: none; }
-  & a:hover { background: var(--lt-muted); }
+  & a { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 4px; border: 1px solid var(--color-border-faint, var(--lt-border)); border-radius: 9999px; color: var(--color-text, var(--lt-fg)); font-weight: 500; text-decoration: none; }
+  & a:hover { background: var(--color-background-container-tint, var(--lt-muted)); }
   & img, & svg { width: 20px; height: 20px; border-radius: 9999px; object-fit: cover; }
-  & svg { padding: 3px; box-sizing: border-box; color: var(--lt-muted-fg); }
+  & svg { padding: 3px; box-sizing: border-box; color: var(--color-text-low-emphasis, var(--lt-muted-fg)); }
 }
 
 /* Quiet Home (setting): no notification dot on Home. React: an empty span next to the
