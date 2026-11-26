@@ -8,7 +8,6 @@
 import { enhanceComposer, installComposerDock, placeCompose } from './composer';
 import { addStyle, sync } from './dom';
 import { addFooterToMoreMenu } from './nav';
-import { applyPalette } from './palette';
 import { installPickerGuard } from './picker';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
 import { followOsTheme, renderSettings, themePreference } from './settings';
@@ -37,7 +36,6 @@ if (!window.__linkedinTidy) {
   window.__linkedinTidy = true;
 
   addStyle('lt-style', css);
-  applyPalette();
   installPickerGuard();
   installComposerDock();
   followOsTheme();

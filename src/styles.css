@@ -1,13 +1,14 @@
-/* shadcn neutral. light-dark() resolves against LinkedIn's own color-scheme,
-   so everything below follows its light/dark setting. */
+/* Colours are LinkedIn's own (its light and dark palette values), so our pieces match the
+   page; only typography and spacing follow shadcn. light-dark() resolves against
+   LinkedIn's color-scheme, so everything follows its light/dark setting. */
 :root, [data-color-scheme] {
-  --lt-bg: light-dark(#ffffff, #0a0a0a);
-  --lt-card: light-dark(#ffffff, #171717);
-  --lt-fg: light-dark(#0a0a0a, #fafafa);
-  --lt-muted: light-dark(#f5f5f5, #262626);
-  --lt-muted-fg: light-dark(#737373, #a1a1a1);
-  --lt-border: light-dark(#e5e5e5, rgb(255 255 255 / 0.1));
-  --lt-primary: light-dark(#171717, #e5e5e5);
+  --lt-bg: light-dark(#f4f2ee, #000000);
+  --lt-card: light-dark(#ffffff, #1b1f23);
+  --lt-fg: light-dark(rgb(0 0 0 / 0.9), rgb(255 255 255 / 0.9));
+  --lt-muted: light-dark(rgb(0 0 0 / 0.08), rgb(255 255 255 / 0.08));
+  --lt-muted-fg: light-dark(rgb(0 0 0 / 0.6), rgb(255 255 255 / 0.6));
+  --lt-border: light-dark(rgb(140 140 140 / 0.2), rgb(140 140 140 / 0.25));
+  --lt-primary: light-dark(#0a66c2, #71b7fb);
   --lt-radius: 12px;
   --lt-font: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
@@ -17,17 +18,6 @@
    reload. Let the attribute decide (unlayered, so it beats LinkedIn's layers). */
 body[data-color-scheme="light"] { color-scheme: light; }
 body[data-color-scheme="dark"] { color-scheme: dark; }
-
-/* Ember UI tokens. The chat overlay sits in a shadow root on #interop-outlet;
-   declarations on the host from outside win over its internal :host rules. */
-html, #interop-outlet {
-  --color-background-canvas: var(--lt-bg) !important;
-  --color-background-container: var(--lt-card) !important;
-  --color-text: var(--lt-fg) !important;
-  --color-text-low-emphasis: var(--lt-muted-fg) !important;
-  --color-border-faint: var(--lt-border) !important;
-  --color-action: var(--lt-primary) !important;
-}
 
 /* One text size. LinkedIn's CSS is all inside @layer, so these unlayered,
    zero-specificity rules still beat it while anything below can override them. */
@@ -228,9 +218,7 @@ dialog:has([data-sdui-screen$="ShareCompose"]):focus-visible,
 }
 [data-sdui-screen$="ShareCompose"] :is(div:has(> svg#text-bold-fill-medium), div:has(> div > svg#text-bold-fill-medium)) { display: grid; place-items: center; padding: 0; }
 [data-lt-c="tools"] :is(button, a) > span:has(> svg[id$="-medium"]),
-[data-lt-c="tools"] div:has(> div > svg#text-bold-fill-medium) { border: 1px solid var(--lt-border); }
-[data-lt-c="tools"] :is(button, a):hover > span:has(> svg[id$="-medium"]),
-[data-lt-c="tools"] div:has(> div > svg#text-bold-fill-medium):hover { background: var(--lt-muted); }
+[data-lt-c="tools"] div:has(> svg#text-bold-fill-medium) { border: 1px solid var(--lt-border); }
 [data-sdui-screen$="ShareCompose"] div:has(> div > div > div > svg#text-bold-fill-medium) { display: grid; align-items: center; }
 /* Text buttons (Proofread, Post): 32px, 8px radius. */
 [data-sdui-screen$="ShareCompose"] button > span:has(> svg#premium-chip-fill-color-small) { height: 32px; border-radius: 8px; }
