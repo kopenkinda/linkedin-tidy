@@ -1,4 +1,4 @@
-import { config, mutedWords, OPTIONS, setConfig, setMutedWords, type ConfigKey } from './config';
+import { config, mutedWords, OPTIONS, PAGES, setConfig, setMutedWords, type ConfigKey, type PageId } from './config';
 import { h, icon, type Icon } from './dom';
 import { ICONS } from './icons';
 
@@ -76,6 +76,14 @@ async function setLocale(locale: string): Promise<boolean> {
   return response.ok;
 }
 
+// The page the dialog opens on: the settings for where you are.
+const currentPage = (): PageId => (document.querySelector('[data-sdui-screen$=".profile.Profile"]') ? 'profile' : 'feed');
+
+function selectPage(dialog: HTMLElement, page: PageId) {
+  for (const tab of dialog.querySelectorAll<HTMLElement>('[role="tab"]')) tab.setAttribute('aria-selected', String(tab.dataset.page === page));
+  for (const panel of dialog.querySelectorAll<HTMLElement>('[role="tabpanel"]')) panel.hidden = panel.dataset.page !== page;
+}
+
 function openConfig(onChange: () => void) {
   let dialog = document.getElementById('lt-config') as HTMLDialogElement | null;
   if (!dialog) {
@@ -84,13 +92,17 @@ function openConfig(onChange: () => void) {
       h('header', {},
         h('h2', { id: 'lt-config-title' }, 'LinkedIn Plus'),
         h('button', { type: 'button', class: 'lt-config-close', 'aria-label': 'Close' }, icon(ICONS.close))),
-      h('p', { class: 'lt-config-desc' }, 'Tweaks on top of LinkedIn. Saved in this browser.'),
-      OPTIONS.map((o) => h('label', { class: 'lt-option' },
-        h('span', {}, h('strong', {}, o.label), h('small', {}, o.hint)),
-        h('input', { type: 'checkbox', role: 'switch', 'data-key': o.key, checked: current[o.key] }))),
-      h('label', { class: 'lt-option lt-muted-words' },
-        h('span', {}, h('strong', {}, 'Muted words'), h('small', {}, 'One per line. Posts that mention any of them are filtered out.')),
-        h('textarea', { rows: 4, spellcheck: 'false', placeholder: 'crypto\nopen to work' }, mutedWords().join('\n'))));
+      h('p', { class: 'lt-config-desc' }, 'Tweaks on top of LinkedIn, by page. Saved in this browser.'),
+      h('div', { class: 'lt-config-body' },
+        h('nav', { role: 'tablist', 'aria-orientation': 'vertical', 'aria-label': 'Pages' },
+          PAGES.map((p) => h('button', { type: 'button', role: 'tab', id: `lt-tab-${p.id}`, 'aria-controls': `lt-panel-${p.id}`, 'data-page': p.id }, p.label))),
+        PAGES.map((p) => h('section', { role: 'tabpanel', id: `lt-panel-${p.id}`, 'aria-labelledby': `lt-tab-${p.id}`, 'data-page': p.id },
+          OPTIONS.filter((o) => o.page === p.id).map((o) => h('label', { class: 'lt-option' },
+            h('span', {}, h('strong', {}, o.label), h('small', {}, o.hint)),
+            h('input', { type: 'checkbox', role: 'switch', 'data-key': o.key, checked: current[o.key] }))),
+          p.id === 'feed' && h('label', { class: 'lt-option lt-muted-words' },
+            h('span', {}, h('strong', {}, 'Muted words'), h('small', {}, 'One per line. Posts that mention any of them are filtered out.')),
+            h('textarea', { rows: 4, spellcheck: 'false', placeholder: 'crypto\nopen to work' }, mutedWords().join('\n')))))));
     // A textarea fires `change` when it loses focus, which closing the dialog also causes.
     created.addEventListener('change', (e) => {
       const input = e.target as HTMLInputElement | HTMLTextAreaElement;
@@ -103,11 +115,15 @@ function openConfig(onChange: () => void) {
     });
     // Close on the X or a click on the backdrop (the dialog element itself).
     created.addEventListener('click', (e) => {
-      if (e.target === created || (e.target as Element).closest('.lt-config-close')) created.close();
+      const target = e.target as Element;
+      if (target === created || target.closest('.lt-config-close')) return created.close();
+      const page = target.closest<HTMLElement>('[role="tab"]')?.dataset.page as PageId | undefined;
+      if (page) selectPage(created, page);
     });
     document.body.append(created);
     dialog = created;
   }
+  selectPage(dialog, currentPage());
   dialog.showModal();
 }
 

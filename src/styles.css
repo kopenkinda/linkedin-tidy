@@ -37,6 +37,25 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > section { grid-column: 2; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > aside:last-child { display: none !important; }
 
+/* Profile: the same two columns, with LinkedIn's right rail as the sidebar on the left.
+   It keeps the profile language card (your own profile only) under our dashboard and
+   settings (profile.ts); the footer's links are in Help & legal. */
+[data-sdui-screen$=".profile.Profile"] #workspace > div > div:has(> section + aside) {
+  grid-template-columns: 25fr 75fr;
+  column-gap: 24px;
+  & > aside { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 8px; }
+  & > section { grid-column: 2; grid-row: 1; }
+  & > footer { display: none; }
+  & > aside > div:first-child > div:first-child > :not([componentkey$="SupportedLocales"]),
+  & > aside > div:first-child > :not(:first-child) { display: none !important; }
+  & > aside > * { flex: none; }
+  & > aside > div:first-child { height: auto; } /* LinkedIn stretches it to the page height */
+  & #lt-dashboard { order: -1; margin: 0; }
+}
+html[data-lt-hide-suggestions] [componentkey$="SuggestedForYou"] { display: none !important; }
+/* Your dashboard moves to the sidebar. */
+[data-sdui-screen$=".profile.Profile"] #workspace section [data-testid="lazy-column"] section:has(a[href*="/analytics/search-appearances/"]):not(:has(section a[href*="/analytics/"])) { display: none; }
+
 /* Left rail: only our profile card and games row. */
 aside :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games, #lt-settings) { display: none !important; }
 
@@ -152,12 +171,12 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 #lt-profile .lt-company img { width: 16px; height: 16px; border-radius: 4px; }
 
 /* Menu rows inside the profile card, sidebar-style */
-#lt-profile .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }
-#lt-profile .lt-menu a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
-#lt-profile .lt-menu :is(svg, img) { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
+#lt-profile .lt-menu, #lt-dashboard .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }
+:is(#lt-profile, #lt-dashboard) .lt-menu a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
+:is(#lt-profile, #lt-dashboard) .lt-menu :is(svg, img) { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
 #lt-profile .lt-menu img { border-radius: 4px; }
-#lt-profile .lt-menu strong { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
-#lt-profile .lt-menu-label { padding: 6px 10px 2px; color: var(--lt-muted-fg); font-weight: 500; }
+:is(#lt-profile, #lt-dashboard) .lt-menu strong { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+:is(#lt-profile, #lt-dashboard) .lt-menu-label { padding: 6px 10px 2px; color: var(--lt-muted-fg); font-weight: 500; }
 
 /* Games: one horizontally scrollable row */
 #lt-games { display: flex; gap: 2px; padding: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
@@ -168,7 +187,7 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 /* Quick settings: bare rows in the column, no card */
 
 /* LinkedIn Plus config dialog */
-#lt-config { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--lt-border); border-radius: var(--lt-radius); background: var(--lt-card); color: var(--lt-fg); font-family: var(--lt-font); font-size: 14px; line-height: 20px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.15); }
+#lt-config { width: min(600px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--lt-border); border-radius: var(--lt-radius); background: var(--lt-card); color: var(--lt-fg); font-family: var(--lt-font); font-size: 14px; line-height: 20px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.15); }
 #lt-config::backdrop { background: rgb(0 0 0 / 0.5); }
 #lt-config header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 4px 20px; }
 #lt-config h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
@@ -176,7 +195,16 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 #lt-config .lt-config-close { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
 #lt-config .lt-config-close:hover { background: var(--lt-muted); color: var(--lt-fg); }
 #lt-config svg { width: 16px; height: 16px; }
-#lt-config .lt-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--lt-border); cursor: pointer; }
+#lt-config .lt-config-body { display: grid; grid-template-columns: 140px 1fr; min-height: 280px; border-top: 1px solid var(--lt-border); }
+#lt-config [role="tablist"] { display: grid; align-content: start; gap: 2px; padding: 8px; border-right: 1px solid var(--lt-border); }
+#lt-config [role="tab"] { padding: 6px 10px; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); font: inherit; font-weight: 500; text-align: left; cursor: pointer; }
+#lt-config [role="tab"]:hover { color: var(--lt-fg); }
+#lt-config [role="tab"][aria-selected="true"] { background: var(--lt-muted); color: var(--lt-fg); }
+#lt-config [role="tab"]:focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: -2px; }
+#lt-config [role="tabpanel"] { grid-column: 2; }
+#lt-config [role="tabpanel"][hidden] { display: none; } /* LinkedIn's CSS sets display on sections */
+#lt-config .lt-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; cursor: pointer; }
+#lt-config .lt-option + .lt-option { border-top: 1px solid var(--lt-border); }
 #lt-config .lt-option span { display: grid; gap: 2px; }
 #lt-config .lt-option small { font-size: 14px; color: var(--lt-muted-fg); }
 #lt-config input[role="switch"] { appearance: none; flex: none; position: relative; width: 32px; height: 18px; margin: 0; border-radius: 9999px; background: var(--lt-border); cursor: pointer; transition: background 0.15s; }

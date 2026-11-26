@@ -11,6 +11,7 @@ import { addStyle, sync } from './dom';
 import { installMutedReveal, markPosts } from './feed';
 import { extendMoreMenu, matchPageWidth } from './nav';
 import { installPickerGuard } from './picker';
+import { updateProfile } from './profile';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
 import { followOsTheme, refreshSettings, renderSettings } from './settings';
 import css from './styles.css';
@@ -30,6 +31,7 @@ function update() {
     sync('lt-settings', true, () => renderSettings(update), games ?? profile ?? identity);
     refreshSettings();
   }
+  updateProfile(update);
   placeCompose();
   enhanceComposer();
   extendMoreMenu();
