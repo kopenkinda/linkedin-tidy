@@ -90,27 +90,81 @@ function readPerson(page: Element): Person | null {
   };
 }
 
-// The top card's action buttons: Open to, Add section, Enhance profile and ⋯ on yours;
-// Follow or Following, Connect, Message, ⋯ and the like on someone else's. LinkedIn also
-// renders a hidden set for narrow windows, so start from the visible ⋯.
+// The visible ⋯ in the top card. LinkedIn also renders a hidden set of actions for narrow
+// windows.
+const moreButton = (page: Element) =>
+  [...page.querySelectorAll<HTMLElement>('[componentkey$="Topcard"] button:has(svg#ellipses-horizontal-fill-small)')].find((b) => b.getClientRects().length);
+
+// The top card's actions: Open to, Add section, Enhance profile and ⋯ on yours; Follow or
+// Following, Connect, Message, a website link, ⋯ and the like on someone else's.
 function topActions(page: Element): HTMLElement[] {
-  const more = [...page.querySelectorAll('[componentkey$="Topcard"] button:has(svg#ellipses-horizontal-fill-small)')].find((b) => b.getClientRects().length);
-  const row = more?.parentElement?.parentElement;
-  const own = !!page.querySelector('button[componentkey$="_openToButton"]');
+  const row = moreButton(page)?.parentElement?.parentElement;
   return [...(row?.querySelectorAll<HTMLElement>('[data-display-contents] > :is(a, button)') ?? [])]
     // On your own profile only the two that open a menu: Open to and ⋯.
-    .filter((el) => !own || el.hasAttribute('aria-expanded'));
+    .filter((el) => !isOwn(page) || el.hasAttribute('aria-expanded'));
+}
+const isOwn = (page: Element) => !!page.querySelector('button[componentkey$="_openToButton"]');
+
+// Connect and Follow sit in the top card on some profiles and in its ⋯ menu on others
+// (whichever one the card doesn't show), and Following is in the menu once you're connected.
+// The menu only exists while it's open, so open it once per profile, unseen (styles.css,
+// [data-lt-ghost]), and note what it holds.
+let menu: { path: string; items: { label: string; icon: string }[] } | undefined;
+let probing = false;
+let rerender = () => {};
+
+const openPopovers = () => [...document.querySelectorAll<HTMLElement>('[popover]:popover-open')];
+
+async function openMenu(trigger: HTMLElement, unseen: boolean) {
+  const before = new Set(openPopovers());
+  document.documentElement.toggleAttribute('data-lt-ghost', unseen);
+  trigger.click();
+  return until(() => openPopovers().find((p) => !before.has(p)), 1000).catch(() => undefined);
 }
 
-// LinkedIn's icon on an action, as ours.
-const ACTION_ICONS: [id: string, svg: Icon][] = [
-  ['ellipses-horizontal', ICONS.ellipsis],
-  ['person-plus', ICONS.userPlus], // Connect
-  ['plus', ICONS.plus], // Follow
-  ['check', ICONS.userCheck], // Following
-  ['paper-plane', ICONS.send], // Message
+async function closeMenu(more: HTMLElement, m: HTMLElement | undefined) {
+  const open = () => m?.isConnected && m.matches(':popover-open');
+  if (open()) more.click();
+  await until(() => !open(), 500).catch(() => undefined);
+  document.documentElement.removeAttribute('data-lt-ghost');
+}
+
+const menuItems = (m: HTMLElement | undefined) => [...(m?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+
+async function probeMenu(page: Element) {
+  const more = moreButton(page);
+  const path = location.pathname;
+  if (!more || probing || menu?.path === path || isOwn(page)) return;
+  probing = true;
+  const focused = document.activeElement;
+  const m = await openMenu(more, true);
+  const items = menuItems(m).map((el) => ({ label: text(el), icon: el.querySelector('svg[id]')?.id ?? '' }));
+  await closeMenu(more, m);
+  // LinkedIn hands focus back to its ⋯, which may be far up the page.
+  if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  if (focused instanceof HTMLElement) focused.focus({ preventScroll: true });
+  menu = { path, items };
+  probing = false;
+  rerender();
+}
+
+// LinkedIn's icon on an action, as ours, and the order they go in: Connect first, then
+// Follow, as icons; then Message and the rest, labelled; ⋯ last.
+const KINDS: [id: string, svg: Icon, iconOnly: boolean][] = [
+  ['person-plus', ICONS.userPlus, true], // Connect
+  ['plus', ICONS.plus, true], // Follow
+  ['check', ICONS.userCheck, true], // Following
+  ['paper-plane', ICONS.send, false], // Message
+  ['ellipses-horizontal', ICONS.ellipsis, true],
 ];
-const actionIcon = (id: string) => ACTION_ICONS.find(([prefix]) => id.startsWith(prefix))?.[1];
+const kind = (id: string) => {
+  const i = KINDS.findIndex(([prefix]) => id.startsWith(prefix));
+  const [, svg, iconOnly] = KINDS[i] ?? [];
+  // Anything else (Open to, a newsletter, Pending) goes with Message, before ⋯.
+  return { rank: i < 0 ? KINDS.length - 1.5 : i, svg, iconOnly: !!iconOnly };
+};
+const isConnect = (id: string) => id.startsWith('person-plus');
+const isFollow = (id: string) => /^(plus|check)-/.test(id);
 
 // The current companies and school next to the headline ("Stan + 2 more", "Universitat
 // Pompeu Fabra"), told apart from other figures by LinkedIn's placeholder logo. Clicking
@@ -119,10 +173,19 @@ const topOrgs = (page: Element) =>
   [...page.querySelectorAll<HTMLElement>('[componentkey$="Topcard"] [role="button"]:has(figure svg:is([id^="company-"], [id^="school-"]))')]
     .filter((el) => el.getClientRects().length);
 
+interface Action {
+  label: string;
+  icon: string;
+  /** Where the real one is: the top card's actions, or the ⋯ menu's items. */
+  from: 'card' | 'menu';
+  index: number;
+}
+
 export interface Mini extends Person {
   stats: { value: string; label: string; href?: string }[];
   orgs: { label: string; name: string; logo?: string }[];
-  actions: { label: string; icon: string }[];
+  links: { label: string; name: string; href: string }[];
+  actions: Action[];
 }
 
 function readMini(page: Element): Mini | null {
@@ -142,64 +205,98 @@ function readMini(page: Element): Mini | null {
     const heading = text(page.querySelector(`[componentkey$="${section}TopLevelSection"] h2`)).replace(/\s*\(\d+\)$/, '');
     return { label: heading || section, name: text(el), logo: el.querySelector('img')?.src };
   });
-  const actions = topActions(page).map((el) => ({
-    label: text(el) || (el.getAttribute('aria-label') ?? ''),
-    icon: el.querySelector('svg[id]')?.id ?? '',
-  }));
-  return { ...person, stats, orgs, actions };
+  const links: Mini['links'] = [];
+  const actions: Action[] = [];
+  topActions(page).forEach((el, index) => {
+    const label = text(el) || (el.getAttribute('aria-label') ?? '');
+    const icon = el.querySelector('svg[id]')?.id ?? '';
+    if (el instanceof HTMLAnchorElement && !icon) {
+      // "Visit my website": LinkedIn's /safety/go/ link, with the site in its url parameter.
+      const url = new URL(el.href).searchParams.get('url');
+      links.push({ href: el.href, label: url ? label : '', name: url ? url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') : label });
+    } else actions.push({ label, icon, from: 'card', index });
+  });
+  if (menu?.path === location.pathname) {
+    menu.items.forEach(({ label, icon }, index) => {
+      const wanted = isConnect(icon) ? isConnect : isFollow(icon) ? isFollow : undefined;
+      if (wanted && !actions.some((a) => wanted(a.icon))) actions.push({ label, icon, from: 'menu', index });
+    });
+  }
+  actions.sort((a, b) => kind(a.icon).rank - kind(b.icon).rank);
+  return { ...person, stats, orgs, links, actions };
 }
 
 // Always at the top of the sidebar, with stand-ins for the top card's buttons that click the
 // real ones. LinkedIn's own sticky bar, which repeats them once the top card scrolls away,
 // is hidden (styles.css).
 function renderMini(m: Mini): HTMLElement {
+  // Connect when there is one, otherwise the first labelled action (Message, Open to).
+  const primary = m.actions.find((a) => isConnect(a.icon)) ?? m.actions.find((a) => !kind(a.icon).iconOnly);
   const card = h('section', { id: 'lt-mini', class: 'lt-card' },
     personHead(m),
     m.stats.length > 0 && h('p', { class: 'lt-mini-stats' },
       m.stats.map((st) => h(st.href ? 'a' : 'span', { href: st.href }, h('strong', {}, st.value), ` ${st.label}`))),
-    m.orgs.length > 0 && h('div', { class: 'lt-mini-orgs' },
+    m.orgs.length + m.links.length > 0 && h('div', { class: 'lt-mini-rows' },
       m.orgs.map((o, i) => h('button', { type: 'button', 'data-org': i },
-        h('span', { class: 'lt-logo' }, o.logo && h('img', { src: o.logo, alt: '' })),
-        h('span', { class: 'lt-stack' }, h('small', {}, o.label), h('span', {}, o.name))))),
+        h('span', { class: 'lt-logo' }, o.logo ? h('img', { src: o.logo, alt: '' }) : icon(ICONS.building)),
+        h('span', { class: 'lt-stack' }, h('small', {}, o.label), h('span', {}, o.name)))),
+      m.links.map((l) => h('a', { href: l.href, target: '_blank', rel: 'noopener' },
+        h('span', { class: 'lt-logo' }, icon(ICONS.link)),
+        h('span', { class: 'lt-stack' }, l.label && h('small', {}, l.label), h('span', {}, l.name))))),
     m.actions.length > 0 && h('div', { class: 'lt-mini-actions' },
       m.actions.map((a, i) => {
-        const svg = actionIcon(a.icon);
-        const more = svg === ICONS.ellipsis;
-        return h('button', { type: 'button', 'data-index': i, 'aria-label': more ? a.label : null, class: more ? 'lt-more-button' : null },
-          svg && icon(svg), !more && a.label);
+        const { svg, iconOnly } = kind(a.icon);
+        const classes = [iconOnly && 'lt-icon-button', svg === ICONS.ellipsis && 'lt-more-button', a === primary && 'lt-primary'];
+        return h('button', { type: 'button', 'data-index': i, class: classes.filter(Boolean).join(' ') || null, title: iconOnly ? a.label : null, 'aria-label': iconOnly ? a.label : null },
+          svg && icon(svg), !iconOnly && a.label);
       })));
   card.addEventListener('click', (e) => {
     const target = e.target as Element;
     const fake = target.closest<HTMLElement>('[data-index]');
     const org = target.closest<HTMLElement>('[data-org]');
     const page = document.querySelector(PROFILE);
+    const action = fake && m.actions[Number(fake.dataset.index)];
     if (!page) return;
-    if (fake) void press(page, Number(fake.dataset.index), fake);
+    if (fake && action) void press(page, action, fake);
     if (org) topOrgs(page)[Number(org.dataset.org)]?.click();
   });
   return card;
 }
 
-const openPopovers = () => [...document.querySelectorAll<HTMLElement>('[popover]:popover-open')];
-
-// A menu (⋯, Open to) opens next to the button that was clicked, which may be scrolled off
-// screen; pin the one that opens to our stand-in instead (styles.css, [data-lt-pinned]).
-async function press(page: Element, index: number, fake: HTMLElement) {
-  const real = topActions(page)[index];
-  if (!real) return;
-  const before = new Set(openPopovers());
-  real.click();
-  const menu = await until(() => openPopovers().find((p) => !before.has(p)), 1000).catch(() => undefined);
-  if (!menu) return;
+// Clicks the real action. One in the ⋯ menu is picked from the menu, unseen. A menu that opens
+// (⋯, Open to) appears next to the button that was clicked, which may be scrolled off screen;
+// pin it to our stand-in instead (styles.css, [data-lt-pinned]).
+async function press(page: Element, action: Action, fake: HTMLElement) {
+  const more = moreButton(page);
+  let m: HTMLElement | undefined;
+  if (action.from === 'menu') {
+    if (!more) return;
+    m = await openMenu(more, true);
+    const item = menuItems(m)[action.index];
+    if (item && item.querySelector('svg[id]')?.id === action.icon) {
+      item.click();
+      await closeMenu(more, m);
+      // Follow turns into Following in the menu; read it again once LinkedIn has updated it.
+      // Not after Connect, whose invite dialog is open by then.
+      if (isFollow(action.icon)) setTimeout(() => { menu = undefined; rerender(); }, 1500);
+      return;
+    }
+    // The menu changed since we read it: show it as it is.
+    document.documentElement.removeAttribute('data-lt-ghost');
+  } else {
+    const real = topActions(page)[action.index];
+    if (real) m = await openMenu(real, false);
+  }
+  if (!m) return;
   for (const b of fake.parentElement?.children ?? []) (b as HTMLElement).style.removeProperty('anchor-name');
   fake.style.setProperty('anchor-name', '--lt-pressed');
-  menu.setAttribute('data-lt-pinned', '');
+  m.setAttribute('data-lt-pinned', '');
   const unpin = (e: Event) => {
     if ((e as ToggleEvent).newState !== 'closed') return;
-    menu.removeAttribute('data-lt-pinned');
-    menu.removeEventListener('toggle', unpin);
+    m.removeAttribute('data-lt-pinned');
+    m.removeEventListener('toggle', unpin);
   };
-  menu.addEventListener('toggle', unpin);
+  m.addEventListener('toggle', unpin);
 }
 
 export function updateProfile(onChange: () => void): void {
@@ -208,6 +305,8 @@ export function updateProfile(onChange: () => void): void {
   const aside = page?.querySelector('#workspace aside');
   document.documentElement.toggleAttribute('data-lt-hide-suggestions', config().hideProfileSuggestions);
   if (!page || !main || !aside?.firstElementChild) return;
+  rerender = onChange;
+  void probeMenu(page);
   // After LinkedIn's (hidden) content.
   const mini = sync('lt-mini', readMini(page), renderMini, aside.firstElementChild);
   const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, mini ?? aside.firstElementChild);
