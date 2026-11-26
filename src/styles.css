@@ -61,6 +61,14 @@ html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] [componentkey$="T
 }
 /* Someone else's profile starts with About. Yours keeps LinkedIn's order. */
 html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] #workspace section [componentkey$="About"] { order: -1; }
+/* Activity goes after Languages, before Interests: it's the cards in front of Interests' slot
+   and the ones after it that need moving. The slots are display: contents wrappers, so the
+   order goes on the cards inside them. */
+[data-sdui-screen$=".profile.Profile"] #workspace section > div > div {
+  & [componentkey$="Activity"] { order: 1; }
+  & [componentkey*="CardsBelowActivityPart"]:has([componentkey$="_Interests"]),
+  & > :has([componentkey$="_Interests"]) ~ * > * { order: 2; }
+}
 /* Sales Insights, while it's an upsell: its links go to Premium's sales page. With Premium
    it's the real thing and stays. */
 [data-sdui-screen$=".profile.Profile"] [componentkey$="SalesInsightsOrHighlights"]:has(a[href*="/premium/products/"]) { display: none !important; }

@@ -361,6 +361,48 @@ document.addEventListener('click', (e) => {
   value.setAttribute('data-lt-revealed', '');
 }, true);
 
+// Languages: LinkedIn shows two and links the rest to their details page, whose HTML has them
+// all. Read the names and levels from there (LinkedIn's sanitizer empties parsed HTML, hence
+// the pattern: each row's first two lines) and add the missing ones as copies of LinkedIn's
+// last row, so they look the same. Once per profile, and only when there are more to show.
+const allLanguages = new Map<string, string[][] | null>();
+
+function showAllLanguages(page: Element) {
+  const card = page.querySelector('[componentkey*="LanguageTopLevel"]');
+  const more = [...(card?.querySelectorAll<HTMLAnchorElement>('a[href$="/details/languages/"]') ?? [])].find((a) => text(a));
+  if (!card || !more) return;
+  const url = more.href;
+  if (!allLanguages.has(url)) {
+    allLanguages.set(url, null);
+    fetch(url, { credentials: 'include' })
+      .then((r) => r.text())
+      .then((html) => {
+        const unescape = (s: string) => s.replace(/&(amp|lt|gt|quot|#39|#x27);/g, (_, e: string) => ({ amp: '&', lt: '<', gt: '>', quot: '"' })[e] ?? "'");
+        allLanguages.set(url, html.split('componentkey="entity-collection-item').slice(1)
+          .map((row) => [...row.slice(0, 3000).matchAll(/<p[^>]*>([^<]*)<\/p>/g)].slice(0, 2).map((m) => unescape(m[1]!.trim()))));
+        rerender();
+      })
+      .catch(() => undefined);
+    return;
+  }
+  const all = allLanguages.get(url);
+  const rows = card.querySelectorAll('[componentkey^="entity-collection-item"]');
+  const last = rows[rows.length - 1];
+  if (!all || !last || card.querySelector('[data-lt-copy]') || all.length <= rows.length) return;
+  for (const [name = '', level = ''] of all.slice(rows.length).reverse()) {
+    const copy = last.cloneNode(true) as Element;
+    copy.setAttribute('data-lt-copy', '');
+    copy.removeAttribute('componentkey');
+    const [p1, p2] = copy.querySelectorAll('p');
+    if (p1) p1.textContent = name;
+    if (p2) p2.textContent = level;
+    last.after(copy);
+  }
+  // "Show all 3 languages", with its divider.
+  const footer = more.parentElement?.parentElement;
+  if (footer) footer.style.display = 'none';
+}
+
 export function updateProfile(onChange: () => void): void {
   const page = document.querySelector(PROFILE);
   const main = page?.querySelector('#workspace section');
@@ -370,6 +412,7 @@ export function updateProfile(onChange: () => void): void {
   if (!page || !main || !aside?.firstElementChild) return;
   rerender = onChange;
   void probeMenu(page);
+  showAllLanguages(page);
   // After LinkedIn's (hidden) content.
   const mini = sync('lt-mini', readMini(page), renderMini, aside.firstElementChild);
   // On someone else's profile the mini profile stands in for LinkedIn's top card (styles.css).
