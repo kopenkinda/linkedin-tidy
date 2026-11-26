@@ -8,9 +8,12 @@ import { config, mutedWords } from './config';
 
 const POSTS = ':is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"]';
 
-// Promoted posts look like any other post. The "Promoted" or "Promoted by X" line under the
-// author is the tell. They also lack the "Hide post" ×, but so do your own posts.
-const PROMOTED = /^Promoted(\s+by\s.+)?$/;
+// Promoted posts look like any other post, and their "Promoted" line is in the page's
+// language. What they lack: the "Hide post" ×, and the "1w • 🌐" line saying when and to
+// whom it was posted. Your own posts also lack the ×, so it takes both.
+const isAd = (post: Element) =>
+  !post.querySelector('button svg#xmark-outline-small') &&
+  ![...post.querySelectorAll('p:has(svg)')].some((p) => p.textContent?.includes('•'));
 
 let rules = { key: '', find: (_text: string): string | undefined => undefined };
 
@@ -44,8 +47,8 @@ export function markPosts(): void {
     // The list item mounts before its post; check once the header is in. The post itself
     // excludes the comments below it, so a muted word in a comment doesn't count.
     const post = item.querySelector('div:has(> h2)');
-    if (!post?.querySelector('button[aria-label^="Open control menu"]')) continue;
-    item.setAttribute('data-lt-ad', String([...post.querySelectorAll('p')].some((p) => PROMOTED.test(p.textContent?.trim() ?? ''))));
+    if (!post?.querySelector('button svg#ellipses-horizontal-fill-small')) continue;
+    item.setAttribute('data-lt-ad', String(isAd(post)));
     const word = rules.find(textOf(post));
     if (word) item.setAttribute('data-lt-muted', word);
     else item.removeAttribute('data-lt-muted');

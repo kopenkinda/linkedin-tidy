@@ -45,7 +45,8 @@ export function readProfile(identity: Element): Profile | null {
   const [name = '', headline = '', location = ''] = [...info.querySelectorAll('p')].map(text);
   const stats = STATS.flatMap(([path, svg]) => {
     const a = rail?.querySelector<HTMLAnchorElement>(`a[href*="${path}"]${ours}`);
-    const m = a?.getAttribute('aria-label')?.match(/^(.*?)\s+(\S+)$/);
+    // "Profile viewers 36"; some languages put the number in brackets.
+    const m = a?.getAttribute('aria-label')?.match(/^(.*?)\s+\(?([\d\s.,]+)\)?$/);
     return a && m?.[1] && m[2] ? [{ href: a.href, label: m[1], value: m[2], svg }] : [];
   });
   // Pages you manage, from the hidden "Manage" card. The identity card's own company
@@ -125,10 +126,11 @@ export function readGames(): Game[] | null {
   for (const a of links) {
     knownGames.set(a.href, {
       href: a.href,
-      name: a.getAttribute('aria-label')?.replace(/^Play\s+/, '') ?? '',
+      name: text(a.querySelector('strong')),
       icon: a.querySelector('img')?.src,
-      // "Zip #619" sits next to "4 connections played", so read the title line only.
-      number: text(a.querySelector('strong')?.parentElement).match(/#(\d+)/)?.[1],
+      // "Zip #619" ("Zip № 619" in some languages) sits next to "4 connections played", so
+      // read the title line only.
+      number: text(a.querySelector('strong')?.parentElement).match(/(\d+)$/)?.[1],
     });
   }
   return knownGames.size ? [...knownGames.values()] : null;

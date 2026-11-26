@@ -258,6 +258,8 @@ function setLabel(chip: Element, text: string) {
 }
 
 function relabel(screen: Element) {
+  // The labels are rebuilt from LinkedIn's English ones; other languages keep LinkedIn's.
+  if (!document.documentElement.lang.startsWith('en')) return;
   const [visibility, comments] = screen.querySelectorAll('[role="button"][aria-labelledby][aria-expanded]');
   if (visibility) setLabel(visibility, visibilityLabel(screen, labelOf(visibility)));
   if (comments) setLabel(comments, commentsLabel(labelOf(comments)));

@@ -29,16 +29,16 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 
 /* Feed (both the "For you" and "Network" tabs; the tab bar is the shared marker):
    two columns at 25/75. The right rail goes; profile and games move left. */
-#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) {
+#workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) {
   grid-template-columns: 25fr 75fr;
   column-gap: 24px;
 }
-#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > aside[aria-label="Sidebar"] { grid-column: 1; }
-#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > section { grid-column: 2; }
-#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > aside[aria-label="Aside"] { display: none !important; }
+#workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > aside:first-child { grid-column: 1; }
+#workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > section { grid-column: 2; }
+#workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > aside:last-child { display: none !important; }
 
 /* Left rail: only our profile card and games row. */
-aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games, #lt-settings) { display: none !important; }
+aside :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games, #lt-settings) { display: none !important; }
 
 /* Feed tabs (For you / Network): underline tabs across the feed, under our composer.
    The white card is on an inner wrapper; the tabs keep LinkedIn's own hover. */
@@ -89,7 +89,7 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
   /* Author header: drop the connection degree ("• 3rd+", "• Following") but keep the
      verified and premium badges that share its span, and the creator links. */
   & div[aria-label] > div + div p > span { font-size: 0; }
-  & p:has(> a:is([aria-label="Visit my website"], [aria-label="View my newsletter"])) { display: none; }
+  & p:has(> a[target="_blank"][aria-label]:only-child) { display: none; } /* "Visit my website", "View my newsletter", "See my services" */
 
   /* Media: images and videos sit in nested inline aspect-ratio boxes. Cap the outer one
      and letterbox inside it, so tall screenshots and portrait shots don't fill the screen. */
@@ -107,7 +107,7 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 html[data-lt-hide-ads] [data-lt-ad="true"] { display: none; }
 /* LinkedIn promoting itself ("Try LinkedIn Ads", "Hire top talent"): no author or post
    menu, an offer link tagged src=li-ghom and "galapagos" artwork. */
-html[data-lt-hide-ads] :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"]:has(a[href*="src=li-ghom"], img[src*="/galapagos-"]):not(:has(button[aria-label^="Open control menu"])) { display: none; }
+html[data-lt-hide-ads] :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"]:has(a[href*="src=li-ghom"], img[src*="/galapagos-"]):not(:has(svg#ellipses-horizontal-fill-small)) { display: none; }
 html:not([data-lt-collapse-filtered]) [data-lt-muted]:not([data-lt-revealed]) { display: none; }
 html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
   flex-direction: row;
@@ -311,16 +311,16 @@ header div:has(> div > nav a[href*="/jobs/"]),
   margin-inline: auto;
   padding-inline: 0;
 }
-header div:has(> nav button[aria-label="For Business"]),
-header div:has(> div > nav button[aria-label="For Business"]) > hr,
+header div:has(> nav svg#grid-fill-medium),
+header div:has(> div > nav svg#grid-fill-medium) > hr,
 #global-nav :is(.global-nav-v2__divider, .global-nav__app-launcher-menu, li:has(> a[href*="/learning/"])) { display: none; }
-header button[aria-label="More"] svg#bars-outline-medium,
+header button:has(svg#bars-outline-medium) svg#bars-outline-medium,
 #global-nav .global-nav__more .global-nav__primary-link > svg {
   background: currentColor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.401 8a1.4 1.4 0 1 1 2.8 0 1.4 1.4 0 0 1-2.8 0M6.6 8a1.4 1.4 0 1 1 2.802 0A1.4 1.4 0 0 1 6.6 8M1.8 8a1.4 1.4 0 1 1 2.802 0 1.4 1.4 0 0 1-2.801 0z'/%3E%3C/svg%3E") center / 24px no-repeat;
   & > * { display: none; }
 }
-header button[aria-label="More"] svg#caret-down-fill-small,
+header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 #global-nav .global-nav__more .global-nav__primary-link-text svg { display: none; }
 
 /* What we add to the More menu: Learning, then a For Business group. */
