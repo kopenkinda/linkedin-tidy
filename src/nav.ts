@@ -29,6 +29,10 @@ function pageContainer(): Element | null {
 }
 
 export function matchPageWidth(): void {
+  // Ember pads its page (.authentication-outlet) for a header pinned to the top. On some pages
+  // (messaging, games) the header sits in the flow instead, and the padding is a blank gap.
+  const nav = document.getElementById('global-nav');
+  document.documentElement.toggleAttribute('data-lt-nav-in-flow', !!nav && !/fixed|sticky/.test(getComputedStyle(nav).position));
   const page = pageContainer();
   if (!page || page === measured) return;
   if (measured) pageSize.unobserve(measured);

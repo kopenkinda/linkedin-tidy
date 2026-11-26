@@ -491,7 +491,7 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
   & > .scaffold-layout__aside { display: none; }
 }
 body:has(.msg__list-detail) #msg-overlay { display: none; }
-.authentication-outlet:has(.msg__list-detail) { padding-top: 0 !important; }
+html[data-lt-nav-in-flow] .authentication-outlet { padding-top: 0 !important; }
 .msg-conversations-container__title-row:has(#lt-inboxes) { justify-content: space-between; gap: 8px; }
 /* Ember's own colour tokens follow its theme; ours (light-dark()) only follow color-scheme,
    which Ember's dark mode doesn't always set. */
