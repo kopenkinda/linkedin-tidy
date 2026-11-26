@@ -184,7 +184,7 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 #lt-games img { width: 28px; height: 28px; border-radius: 6px; }
 #lt-games span { font-weight: 500; font-variant-numeric: tabular-nums; }
 
-/* Quick settings: bare rows in the column, no card */
+/* Quick settings: two rows of controls, flush with the column (styles at the end) */
 
 /* LinkedIn Plus config dialog */
 #lt-config { width: min(600px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--lt-border); border-radius: var(--lt-radius); background: var(--lt-card); color: var(--lt-fg); font-family: var(--lt-font); font-size: 14px; line-height: 20px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.15); }
@@ -363,25 +363,25 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 
 /* Sidebar settings (settings.ts): theme toggle, LinkedIn Plus, and Help & legal, whose
    popover holds the footer links. Popovers close on Escape or a click elsewhere. */
-#lt-settings { display: grid; gap: 4px; padding: 0 4px 0 8px; font-family: var(--lt-font); font-size: 14px; line-height: 20px; color: var(--lt-muted-fg); }
-#lt-settings .lt-setting { display: flex; align-items: center; justify-content: space-between; }
+#lt-settings { display: grid; gap: 8px; font-family: var(--lt-font); font-size: 14px; line-height: 20px; color: var(--lt-muted-fg); }
+#lt-settings .lt-setting { display: flex; gap: 8px; }
 #lt-settings [role="radiogroup"] { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--lt-border); border-radius: 8px; }
 #lt-settings button { display: grid; place-items: center; width: 28px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
 #lt-settings button:hover { color: var(--lt-fg); }
 #lt-settings button[aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
 #lt-settings svg { width: 16px; height: 16px; }
-#lt-settings .lt-language { position: relative; display: flex; align-items: center; height: 30px; box-sizing: border-box; border: 1px solid var(--lt-border); border-radius: 8px; cursor: pointer; }
+#lt-settings .lt-language { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; height: 30px; box-sizing: border-box; border: 1px solid var(--lt-border); border-radius: 8px; cursor: pointer; }
 #lt-settings .lt-language:hover { color: var(--lt-fg); }
 #lt-settings .lt-language:has(select:focus-visible) { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
 #lt-settings .lt-language svg { position: absolute; pointer-events: none; }
 #lt-settings .lt-language svg:first-child { left: 8px; }
 #lt-settings .lt-language svg:last-child { right: 6px; width: 14px; height: 14px; }
-#lt-settings .lt-language select { appearance: none; height: 100%; padding: 0 26px 0 30px; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; outline: none; }
-#lt-settings .lt-plus { width: 100%; height: auto; justify-content: space-between; display: flex; padding: 4px 4px 4px 0; font: inherit; }
+#lt-settings .lt-language select { appearance: none; width: 100%; min-width: 0; height: 100%; padding: 0 26px 0 30px; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; outline: none; }
+#lt-settings .lt-plus { flex: 1; display: flex; align-items: center; gap: 8px; width: auto; height: 30px; padding: 0 8px; border: 1px solid var(--lt-border); border-radius: 8px; font: inherit; white-space: nowrap; }
 #lt-settings .lt-plus[popovertarget] { anchor-name: --lt-links; }
 #lt-links {
   position: fixed; inset: auto; margin: 0;
-  position-anchor: --lt-links; top: calc(anchor(bottom) + 4px); left: anchor(left);
+  position-anchor: --lt-links; top: calc(anchor(bottom) + 4px); right: anchor(right); /* opens leftwards from Help & legal, over the sidebar */
   position-try-fallbacks: flip-block;
   box-sizing: border-box; width: 280px; padding: 12px 16px;
   border: 1px solid var(--lt-border); border-radius: var(--lt-radius);
