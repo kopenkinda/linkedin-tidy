@@ -14,8 +14,22 @@ const pageSize = new ResizeObserver(([entry]) => {
   if (width) document.documentElement.style.setProperty('--lt-page-width', `${width}px`);
 });
 
+// Job search wraps the page container in a full-width one: step down to the centred child.
+// A child that isn't centred is a column, so the full-width one stands.
+function pageContainer(): Element | null {
+  let page = document.querySelector(PAGE);
+  const width = document.documentElement.clientWidth;
+  for (let i = 0; page && i < 3 && page.getBoundingClientRect().width >= width - 1; i++) {
+    const child = [...page.children].find((c) => c.getBoundingClientRect().width > 0);
+    const r = child?.getBoundingClientRect();
+    if (!child || !r || (r.width < width - 1 && Math.abs(r.left - (width - r.right)) > 2)) break;
+    page = child;
+  }
+  return page;
+}
+
 export function matchPageWidth(): void {
-  const page = document.querySelector(PAGE);
+  const page = pageContainer();
   if (!page || page === measured) return;
   if (measured) pageSize.unobserve(measured);
   measured = page;

@@ -10,7 +10,7 @@ import { config } from './config';
 import { addStyle, sync } from './dom';
 import { installMutedReveal, markPosts } from './feed';
 import { extendMoreMenu, matchPageWidth } from './nav';
-import { updateNetwork } from './network';
+import { updateSidebar } from './sidebar';
 import { installPickerGuard } from './picker';
 import { updateProfile } from './profile';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
@@ -34,7 +34,7 @@ function update() {
   }
   document.documentElement.toggleAttribute('data-lt-quiet-home', config().quietHome);
   updateProfile(update);
-  updateNetwork(update);
+  updateSidebar(update);
   placeCompose();
   enhanceComposer();
   extendMoreMenu();
