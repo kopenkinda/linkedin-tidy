@@ -100,18 +100,23 @@ export interface Game {
 // Every game seen this session, by link. LinkedIn re-renders the card in the background
 // and it comes back collapsed to four games; remembering the rest keeps the row whole.
 const knownGames = new Map<string, Game>();
+// We show four games and "Show more" adds four at a time. LinkedIn's card also starts at
+// four, so the first "Show more" opens it (its only button); `complete` once it has.
+const PAGE = 4;
+let shown = PAGE;
+let complete = false;
 let lastExpand = 0;
 
-export function readGames(): Game[] | null {
+export interface Games {
+  games: Game[];
+  more: boolean;
+}
+
+export function readGames(): Games | null {
   const card = document.querySelector('[componentkey="feedRightNavGamesComponentRef"]');
-  if (!card) return knownGames.size ? [...knownGames.values()] : null;
-  const links = [...card.querySelectorAll<HTMLAnchorElement>('a[href*="/games/"]')];
-  // Collapsed: fewer games than we know of (four on first load). The card's only button is
-  // the "Show more" toggle. Throttled so a misread can't flap it open and shut.
-  if (links.length < Math.max(knownGames.size, 5) && Date.now() - lastExpand > 5000) {
-    lastExpand = Date.now();
-    card.querySelector('button')?.click();
-  }
+  const links = [...(card?.querySelectorAll<HTMLAnchorElement>('a[href*="/games/"]') ?? [])];
+  const expand = card?.querySelector('button');
+  if (links.length > PAGE) complete = true;
   for (const a of links) {
     knownGames.set(a.href, {
       href: a.href,
@@ -121,10 +126,25 @@ export function readGames(): Game[] | null {
       number: text(a.querySelector('strong')?.parentElement).match(/#(\d+)/)?.[1],
     });
   }
-  return knownGames.size ? [...knownGames.values()] : null;
+  const pending = !complete && !!expand;
+  // Asked for more than we have: open LinkedIn's card, and retry if that didn't take.
+  // Throttled so a misread can't flap it open and shut.
+  if (pending && shown > knownGames.size && Date.now() - lastExpand > 5000) {
+    lastExpand = Date.now();
+    expand.click();
+  }
+  if (!knownGames.size) return null;
+  return { games: [...knownGames.values()].slice(0, shown), more: knownGames.size > shown || pending };
 }
 
-export function renderGames(games: Game[]): HTMLElement {
-  return h('nav', { id: 'lt-games', class: 'lt-card', 'aria-label': 'Today’s puzzles' },
-    games.map((g) => h('a', { href: g.href, title: `${g.name} #${g.number}` }, h('img', { src: g.icon, alt: g.name }), h('span', {}, g.number))));
+/** `onChange` re-runs the page update, which reads and renders the next four. */
+export function renderGames({ games, more }: Games, onChange: () => void): HTMLElement {
+  const nav = h('nav', { id: 'lt-games', class: 'lt-card', 'aria-label': 'Today’s puzzles' },
+    games.map((g) => h('a', { href: g.href, title: `${g.name} #${g.number}` }, h('img', { src: g.icon, alt: g.name }), h('span', {}, g.number))),
+    more && h('button', { type: 'button' }, 'Show more'));
+  nav.querySelector('button')?.addEventListener('click', () => {
+    shown += PAGE;
+    onChange();
+  });
+  return nav;
 }

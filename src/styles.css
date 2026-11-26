@@ -160,9 +160,11 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 #lt-profile .lt-menu-label { padding: 6px 10px 2px; color: var(--lt-muted-fg); font-weight: 500; }
 
 /* Games: one horizontally scrollable row */
-#lt-games { display: flex; gap: 2px; padding: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
-#lt-games a { flex: 0 0 44px; display: grid; justify-items: center; gap: 4px; padding: 6px 0; border-radius: 8px; }
+#lt-games { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 6px; }
+#lt-games a { display: grid; justify-items: center; gap: 4px; padding: 6px 0; border-radius: 8px; }
 #lt-games img { width: 28px; height: 28px; border-radius: 6px; }
+#lt-games button { grid-column: 1 / -1; padding: 4px; border: 0; border-radius: 8px; background: none; color: var(--lt-muted-fg); font: inherit; cursor: pointer; }
+#lt-games button:hover { background: var(--lt-muted); color: var(--lt-fg); }
 #lt-games span { font-weight: 500; font-variant-numeric: tabular-nums; }
 
 /* Quick settings: bare rows in the column, no card */
