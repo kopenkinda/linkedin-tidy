@@ -1,12 +1,15 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Tidy",
-  "version": "0.1.0",
   "description": "Two-column, shadcn-styled LinkedIn without the clutter.",
   "content_scripts": [
     {
-      "matches": ["https://www.linkedin.com/*"],
-      "js": ["linkedin.js"],
+      "matches": [
+        "https://www.linkedin.com/*"
+      ],
+      "js": [
+        "linkedin.user.js"
+      ],
       "run_at": "document_start"
     }
   ]

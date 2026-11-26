@@ -1,0 +1,152 @@
+/* shadcn neutral. light-dark() resolves against LinkedIn's own color-scheme,
+   so everything below follows its light/dark setting. */
+:root, [data-color-scheme] {
+  --lt-bg: light-dark(#ffffff, #0a0a0a);
+  --lt-card: light-dark(#ffffff, #171717);
+  --lt-fg: light-dark(#0a0a0a, #fafafa);
+  --lt-muted: light-dark(#f5f5f5, #262626);
+  --lt-muted-fg: light-dark(#737373, #a1a1a1);
+  --lt-border: light-dark(#e5e5e5, rgb(255 255 255 / 0.1));
+  --lt-primary: light-dark(#171717, #e5e5e5);
+  --lt-radius: 12px;
+  --lt-font: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Ember UI tokens. The chat overlay sits in a shadow root on #interop-outlet;
+   declarations on the host from outside win over its internal :host rules. */
+html, #interop-outlet {
+  --color-background-canvas: var(--lt-bg) !important;
+  --color-background-container: var(--lt-card) !important;
+  --color-text: var(--lt-fg) !important;
+  --color-text-low-emphasis: var(--lt-muted-fg) !important;
+  --color-border-faint: var(--lt-border) !important;
+  --color-action: var(--lt-primary) !important;
+}
+
+/* One text size. LinkedIn's CSS is all inside @layer, so these unlayered,
+   zero-specificity rules still beat it while anything below can override them. */
+:where(#workspace) :where(:not(svg, svg *)) {
+  font-family: var(--lt-font);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* Feed (both the "For you" and "Network" tabs; the tab bar is the shared marker):
+   two columns at 25/75. The right rail goes; profile and games move left. */
+#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) {
+  grid-template-columns: 25fr 75fr;
+  column-gap: 24px;
+}
+#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > aside[aria-label="Sidebar"] { grid-column: 1; }
+#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > section { grid-column: 2; }
+#workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > aside[aria-label="Aside"] { display: none !important; }
+
+/* Left rail: only our profile card and games row. */
+aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games, #lt-settings) { display: none !important; }
+
+/* Feed junk */
+[data-testid="mainFeed"] > :has([componentkey^="Launchpad"]) { display: none !important; }
+:is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"] { border-radius: var(--lt-radius); }
+
+/* Cards we render */
+.lt-card {
+  display: block;
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: var(--lt-card);
+  color: var(--lt-fg);
+  border: 1px solid var(--lt-border);
+  border-radius: var(--lt-radius);
+  font-family: var(--lt-font);
+}
+.lt-card a { color: inherit; text-decoration: none; }
+.lt-card p { margin: 0; }
+.lt-card a:hover, .lt-about a:hover { background: var(--lt-muted); }
+
+#lt-profile .lt-cover { display: block; height: 64px; background: var(--lt-muted) center / cover no-repeat; }
+#lt-profile .lt-avatar { display: block; width: fit-content; margin: -32px 0 0 16px; position: relative; }
+#lt-profile .lt-avatar:hover { background: none; }
+#lt-profile .lt-avatar img { display: block; width: 64px; height: 64px; object-fit: cover; border-radius: 9999px; border: 3px solid var(--lt-card); background: var(--lt-card); }
+#lt-profile .lt-body { display: grid; gap: 4px; padding: 8px 16px 12px; }
+#lt-profile .lt-name { display: inline-flex; align-items: center; gap: 6px; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
+#lt-profile .lt-name:hover { background: none; text-decoration: underline; }
+#lt-profile .lt-name svg { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
+#lt-profile .lt-headline { color: var(--lt-muted-fg); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#lt-profile .lt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 4px; color: var(--lt-muted-fg); }
+#lt-profile .lt-company { display: inline-flex; align-items: center; gap: 6px; color: var(--lt-fg); }
+#lt-profile .lt-company img { width: 16px; height: 16px; border-radius: 4px; }
+
+/* Menu rows inside the profile card, sidebar-style */
+#lt-profile .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }
+#lt-profile .lt-menu a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
+#lt-profile .lt-menu :is(svg, img) { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
+#lt-profile .lt-menu img { border-radius: 4px; }
+#lt-profile .lt-menu strong { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+#lt-profile .lt-menu-label { padding: 6px 10px 2px; color: var(--lt-muted-fg); font-weight: 500; }
+
+/* Games: one horizontally scrollable row */
+#lt-games { display: flex; gap: 2px; padding: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+#lt-games a { flex: 0 0 44px; display: grid; justify-items: center; gap: 4px; padding: 6px 0; border-radius: 8px; }
+#lt-games img { width: 28px; height: 28px; border-radius: 6px; }
+#lt-games span { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+/* Quick settings: bare rows in the column, no card */
+#lt-settings { display: grid; gap: 4px; padding: 0 4px 0 8px; font-family: var(--lt-font); font-size: 14px; line-height: 20px; color: var(--lt-muted-fg); }
+#lt-settings .lt-setting { display: flex; align-items: center; justify-content: space-between; }
+#lt-settings [role="radiogroup"] { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--lt-border); border-radius: 8px; }
+#lt-settings button { display: grid; place-items: center; width: 28px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
+#lt-settings button:hover { color: var(--lt-fg); }
+#lt-settings button[aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
+#lt-settings svg { width: 16px; height: 16px; }
+#lt-settings .lt-plus { width: 100%; height: auto; justify-content: space-between; display: flex; padding: 4px 4px 4px 0; font: inherit; }
+
+/* LinkedIn Plus config dialog */
+#lt-config { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--lt-border); border-radius: var(--lt-radius); background: var(--lt-card); color: var(--lt-fg); font-family: var(--lt-font); font-size: 14px; line-height: 20px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.15); }
+#lt-config::backdrop { background: rgb(0 0 0 / 0.5); }
+#lt-config header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 4px 20px; }
+#lt-config h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+#lt-config .lt-config-desc { margin: 0; padding: 0 20px 12px; color: var(--lt-muted-fg); }
+#lt-config .lt-config-close { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
+#lt-config .lt-config-close:hover { background: var(--lt-muted); color: var(--lt-fg); }
+#lt-config svg { width: 16px; height: 16px; }
+#lt-config .lt-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--lt-border); cursor: pointer; }
+#lt-config .lt-option span { display: grid; gap: 2px; }
+#lt-config .lt-option small { font-size: 14px; color: var(--lt-muted-fg); }
+#lt-config input[role="switch"] { appearance: none; flex: none; position: relative; width: 32px; height: 18px; margin: 0; border-radius: 9999px; background: var(--lt-border); cursor: pointer; transition: background 0.15s; }
+#lt-config input[role="switch"]::before { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 9999px; background: var(--lt-card); transition: translate 0.15s; }
+#lt-config input[role="switch"]:checked { background: var(--lt-primary); }
+#lt-config input[role="switch"]:checked::before { translate: 14px 0; }
+#lt-config input[role="switch"]:focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 2px; }
+
+/* Composer. Our box replaces LinkedIn's sharebox (hidden, but kept: its "Start a post"
+   button is how we open LinkedIn's composer). Posting fills that composer in the
+   background while it is invisible; it only shows if something goes wrong. */
+[data-testid="mainFeed"] > :has(#draft-text-replaceable-component) { display: none !important; }
+#lt-compose { display: grid; gap: 8px; padding: 12px; }
+#lt-compose button, #lt-compose .lt-compose-bar a { all: unset; box-sizing: border-box; cursor: pointer; }
+#lt-compose textarea { box-sizing: border-box; width: 100%; min-height: 40px; max-height: 50vh; field-sizing: content; resize: none; margin: 0; padding: 9px 12px; border: 1px solid var(--lt-border); border-radius: 8px; background: transparent; color: var(--lt-fg); font: inherit; }
+#lt-compose textarea::placeholder { color: var(--lt-muted-fg); }
+#lt-compose textarea:focus { outline: none; border-color: var(--lt-muted-fg); }
+#lt-compose .lt-compose-bar { display: flex; align-items: center; gap: 4px; }
+#lt-compose .lt-compose-as { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; padding-left: 4px; color: var(--lt-muted-fg); }
+#lt-compose select { padding: 4px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--lt-fg); font: inherit; font-weight: 500; cursor: pointer; }
+#lt-compose select:hover { background: var(--lt-muted); }
+#lt-compose .lt-compose-bar :is(button, a) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-weight: 500; }
+#lt-compose .lt-compose-bar :is(button, a):hover { background: var(--lt-muted); }
+#lt-compose .lt-compose-bar .lt-compose-post { margin-left: 4px; padding: 6px 14px; background: var(--lt-primary); color: var(--lt-card); }
+#lt-compose .lt-compose-bar .lt-compose-post:hover { background: var(--lt-primary); opacity: 0.9; }
+#lt-compose .lt-compose-post:disabled { opacity: 0.5; cursor: default; }
+#lt-compose :is(button, a, select):focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
+#lt-compose svg { width: 16px; height: 16px; color: var(--lt-muted-fg); }
+#lt-compose .lt-compose-status { margin: 0; padding-left: 4px; color: var(--lt-muted-fg); }
+#lt-compose .lt-compose-status:empty { display: none; }
+html[data-lt-ghost] :is(dialog[open]:has([data-sdui-screen$="ShareCompose"]), [popover]:has(input[type="radio"])) { opacity: 0 !important; pointer-events: none !important; }
+html[data-lt-ghost] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backdrop { background: transparent !important; }
+
+/* Footer links, folded into the nav's More menu */
+.lt-about { margin-top: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }
+.lt-about summary { display: flex; justify-content: space-between; padding: 8px 16px; cursor: pointer; list-style: none; color: var(--lt-muted-fg); }
+.lt-about summary::-webkit-details-marker { display: none; }
+.lt-about summary::after { content: "▾"; }
+.lt-about[open] summary::after { content: "▴"; }
+.lt-about a { display: block; padding: 6px 16px; color: var(--lt-fg); text-decoration: none; }
