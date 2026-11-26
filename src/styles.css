@@ -38,19 +38,15 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > aside:last-child { display: none !important; }
 
 /* Profile: the same two columns, with LinkedIn's right rail as the sidebar on the left.
-   It keeps the profile language card (your own profile only) under our dashboard and
-   settings (profile.ts); the footer's links are in Help & legal. */
+   Its own content is hidden: what's worth keeping is in our dashboard card (profile.ts),
+   and the footer's links are in Help & legal. */
 [data-sdui-screen$=".profile.Profile"] #workspace > div > div:has(> section + aside) {
   grid-template-columns: 25fr 75fr;
   column-gap: 24px;
-  & > aside { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 8px; }
+  & > aside { grid-column: 1; grid-row: 1; display: grid; align-content: start; gap: 8px; }
   & > section { grid-column: 2; grid-row: 1; }
-  & > footer { display: none; }
-  & > aside > div:first-child > div:first-child > :not([componentkey$="SupportedLocales"]),
-  & > aside > div:first-child > :not(:first-child) { display: none !important; }
-  & > aside > * { flex: none; }
-  & > aside > div:first-child { height: auto; } /* LinkedIn stretches it to the page height */
-  & #lt-dashboard { order: -1; margin: 0; }
+  & > footer, & > aside > div:first-child { display: none !important; }
+  & #lt-dashboard { margin: 0; }
 }
 html[data-lt-hide-suggestions] [componentkey$="SuggestedForYou"] { display: none !important; }
 /* Your dashboard moves to the sidebar. */
@@ -172,6 +168,10 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 
 /* Menu rows inside the profile card, sidebar-style */
 #lt-profile .lt-menu, #lt-dashboard .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }
+#lt-dashboard .lt-menu:first-child { border-top: 0; }
+#lt-dashboard .lt-stack { display: grid; min-width: 0; }
+#lt-dashboard .lt-stack small { overflow: hidden; color: var(--lt-muted-fg); font-size: 12px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+#lt-dashboard .lt-menu a:has(.lt-stack) svg { align-self: start; margin-top: 2px; }
 :is(#lt-profile, #lt-dashboard) .lt-menu a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
 :is(#lt-profile, #lt-dashboard) .lt-menu :is(svg, img) { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
 #lt-profile .lt-menu img { border-radius: 4px; }
