@@ -43,11 +43,34 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 [data-sdui-screen$=".profile.Profile"] #workspace > div > div:has(> section + aside) {
   grid-template-columns: 25fr 75fr;
   column-gap: 24px;
-  & > aside { grid-column: 1; grid-row: 1; display: grid; align-content: start; gap: 8px; }
+  & > aside { grid-column: 1; grid-row: 1; display: grid; align-content: start; gap: 8px; position: sticky; top: 24px; align-self: start; }
   & > section { grid-column: 2; grid-row: 1; }
   & > footer, & > aside > div:first-child { display: none !important; }
   & #lt-dashboard { margin: 0; }
 }
+/* Scrolled past the top card, LinkedIn slides in a bar with your name and actions. Our mini
+   profile shows at the top of the sidebar instead, and the bar's action buttons move onto
+   its empty row: still LinkedIn's buttons, so their menus open where they now are. */
+[data-sdui-screen$=".profile.Profile"] {
+  & [role="toolbar"] { visibility: hidden; transform: none !important; will-change: auto !important; }
+  & [role="toolbar"]:not([aria-hidden="true"]) div:has(> [data-display-contents] > button svg#ellipses-horizontal-fill-small) {
+    visibility: visible;
+    position: fixed;
+    position-anchor: --lt-mini-actions;
+    top: anchor(top);
+    left: anchor(left);
+    width: anchor-size(width);
+    margin: 0;
+    flex-direction: row-reverse; /* Open to first, then ⋯ */
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  &:has([role="toolbar"][aria-hidden="true"]) #lt-mini { display: none; }
+}
+#lt-mini { margin: 0; }
+#lt-mini .lt-mini-actions { height: 32px; margin: 0 16px 16px; anchor-name: --lt-mini-actions; }
+/* On your own profile: Open to and ⋯ only, not Enhance profile and Add section. */
+[data-sdui-screen$=".profile.Profile"]:has(button[componentkey$="_openToButton"]) [role="toolbar"] [data-display-contents]:has(> :is(a, button:not([aria-expanded]))) { display: none !important; }
 html[data-lt-hide-suggestions] [componentkey$="SuggestedForYou"] { display: none !important; }
 /* Your dashboard moves to the sidebar. */
 [data-sdui-screen$=".profile.Profile"] #workspace section [data-testid="lazy-column"] section:has(a[href*="/analytics/search-appearances/"]):not(:has(section a[href*="/analytics/"])) { display: none; }
@@ -153,18 +176,18 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 .lt-card p { margin: 0; }
 .lt-card a:hover { background: var(--lt-muted); }
 
-#lt-profile .lt-cover { display: block; height: 64px; background: var(--lt-muted) center / cover no-repeat; }
-#lt-profile .lt-avatar { display: block; width: fit-content; margin: -32px 0 0 16px; position: relative; }
-#lt-profile .lt-avatar:hover { background: none; }
-#lt-profile .lt-avatar img { display: block; width: 64px; height: 64px; object-fit: cover; border-radius: 9999px; border: 3px solid var(--lt-card); background: var(--lt-card); }
-#lt-profile .lt-body { display: grid; gap: 4px; padding: 8px 16px 12px; }
-#lt-profile .lt-name { display: inline-flex; align-items: center; gap: 6px; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
-#lt-profile .lt-name:hover { background: none; text-decoration: underline; }
-#lt-profile .lt-name svg { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
-#lt-profile .lt-headline { color: var(--lt-muted-fg); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-#lt-profile .lt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 4px; color: var(--lt-muted-fg); }
-#lt-profile .lt-company { display: inline-flex; align-items: center; gap: 6px; color: var(--lt-fg); }
-#lt-profile .lt-company img { width: 16px; height: 16px; border-radius: 4px; }
+:is(#lt-profile, #lt-mini) .lt-cover { display: block; height: 64px; background: var(--lt-muted) center / cover no-repeat; }
+:is(#lt-profile, #lt-mini) .lt-avatar { display: block; width: fit-content; margin: -32px 0 0 16px; position: relative; }
+:is(#lt-profile, #lt-mini) .lt-avatar:hover { background: none; }
+:is(#lt-profile, #lt-mini) .lt-avatar img { display: block; width: 64px; height: 64px; object-fit: cover; border-radius: 9999px; border: 3px solid var(--lt-card); background: var(--lt-card); }
+:is(#lt-profile, #lt-mini) .lt-body { display: grid; gap: 4px; padding: 8px 16px 12px; }
+:is(#lt-profile, #lt-mini) .lt-name { display: inline-flex; align-items: center; gap: 6px; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
+:is(#lt-profile, #lt-mini) .lt-name:hover { background: none; text-decoration: underline; }
+:is(#lt-profile, #lt-mini) .lt-name svg { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
+:is(#lt-profile, #lt-mini) .lt-headline { color: var(--lt-muted-fg); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+:is(#lt-profile, #lt-mini) .lt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 4px; color: var(--lt-muted-fg); }
+:is(#lt-profile, #lt-mini) .lt-company { display: inline-flex; align-items: center; gap: 6px; color: var(--lt-fg); }
+:is(#lt-profile, #lt-mini) .lt-company img { width: 16px; height: 16px; border-radius: 4px; }
 
 /* Menu rows inside the profile card, sidebar-style */
 #lt-profile .lt-menu, #lt-dashboard .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }

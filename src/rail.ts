@@ -73,8 +73,11 @@ function row(href: string, glyph: Child, label: string, value?: string) {
   return h('a', { href }, glyph, h('span', {}, label), value != null && h('strong', {}, value));
 }
 
-export function renderProfile(p: Profile): HTMLElement {
-  return h('section', { id: 'lt-profile', class: 'lt-card' },
+export type Person = Pick<Profile, 'href' | 'name' | 'headline' | 'location' | 'avatar' | 'cover' | 'verified' | 'company'>;
+
+/** Cover, photo, name, headline and location: the top of our profile cards. */
+export function personHead(p: Person): HTMLElement[] {
+  return [
     h('a', { class: 'lt-cover', href: p.href, tabindex: '-1', 'aria-hidden': 'true', style: p.cover && `background-image:url("${p.cover}")` }),
     h('a', { class: 'lt-avatar', href: p.href, tabindex: '-1', 'aria-hidden': 'true' }, p.avatar && h('img', { src: p.avatar, alt: '' })),
     h('div', { class: 'lt-body' },
@@ -83,6 +86,12 @@ export function renderProfile(p: Profile): HTMLElement {
       h('p', { class: 'lt-meta' },
         p.location && h('span', {}, p.location),
         p.company && h('span', { class: 'lt-company' }, p.company.logo && h('img', { src: p.company.logo, alt: '' }), p.company.name))),
+  ];
+}
+
+export function renderProfile(p: Profile): HTMLElement {
+  return h('section', { id: 'lt-profile', class: 'lt-card' },
+    personHead(p),
     h('nav', { class: 'lt-menu', 'aria-label': 'Your activity' },
       p.stats.map((s) => row(s.href, icon(s.svg), s.label, s.value)),
       SHORTCUTS.map(([label, href, svg]) => row(href, icon(svg), label))),

@@ -1,6 +1,7 @@
 import { config } from './config';
 import { h, icon, sync, type Icon } from './dom';
 import { ICONS } from './icons';
+import { personHead, type Person } from './rail';
 import { refreshSettings, renderSettings } from './settings';
 
 // Profile pages get the feed's two columns: a sidebar on the left, the profile on the
@@ -68,14 +69,42 @@ function renderDashboard(d: Dashboard): HTMLElement {
       d.settings.map((r) => h('a', { href: r.href }, icon(r.svg), h('span', { class: 'lt-stack' }, r.label, h('small', {}, r.value))))));
 }
 
+// The top card: name, headline, then location next to "Contact info".
+function readPerson(page: Element): Person | null {
+  const top = page.querySelector('[componentkey$="Topcard"]');
+  const h2 = top?.querySelector('h2');
+  if (!top || !h2) return null;
+  let info = h2.parentElement;
+  while (info && info !== top && !info.querySelector('a[href*="/overlay/contact-info/"]')) info = info.parentElement;
+  const link = h2.closest('a');
+  const avatar = top.querySelector<HTMLImageElement>('[componentkey="topcard-logo-image-referencekey"] img')?.src;
+  const cover = top.querySelector<HTMLImageElement>('figure img')?.src;
+  return {
+    href: link?.href ?? location.href,
+    name: text(h2),
+    headline: text(info?.querySelector(':scope > p')),
+    location: text(info?.querySelector(':scope > div:has(a[href*="/overlay/contact-info/"]) > p')),
+    avatar,
+    cover: cover === avatar ? undefined : cover,
+    verified: !!link?.querySelector('svg'),
+  };
+}
+
+// Shown once the top card scrolls away (styles.css), in place of LinkedIn's sticky bar,
+// whose action buttons are moved onto the empty actions row.
+function renderMini(p: Person): HTMLElement {
+  return h('section', { id: 'lt-mini', class: 'lt-card' }, personHead(p), h('div', { class: 'lt-mini-actions' }));
+}
+
 export function updateProfile(onChange: () => void): void {
   const page = document.querySelector(PROFILE);
   const main = page?.querySelector('#workspace section');
   const aside = page?.querySelector('#workspace aside');
   document.documentElement.toggleAttribute('data-lt-hide-suggestions', config().hideProfileSuggestions);
-  if (!main || !aside?.firstElementChild) return;
+  if (!page || !main || !aside?.firstElementChild) return;
   // After LinkedIn's (hidden) content.
-  const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, aside.firstElementChild);
-  sync('lt-settings', true, () => renderSettings(onChange), dashboard ?? aside.firstElementChild);
+  const mini = sync('lt-mini', readPerson(page), renderMini, aside.firstElementChild);
+  const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, mini ?? aside.firstElementChild);
+  sync('lt-settings', true, () => renderSettings(onChange), dashboard ?? mini ?? aside.firstElementChild);
   refreshSettings();
 }
