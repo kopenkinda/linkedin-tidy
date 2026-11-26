@@ -77,7 +77,10 @@ async function setLocale(locale: string): Promise<boolean> {
 }
 
 // The page the dialog opens on: the settings for where you are.
-const currentPage = (): PageId => (document.querySelector('[data-sdui-screen$=".profile.Profile"]') ? 'profile' : 'feed');
+const currentPage = (): PageId =>
+  document.querySelector('[data-sdui-screen$=".profile.Profile"]') ? 'profile'
+  : document.getElementById('feedIdentityModuleComponentRef') ? 'feed'
+  : 'general';
 
 function selectPage(dialog: HTMLElement, page: PageId) {
   for (const tab of dialog.querySelectorAll<HTMLElement>('[role="tab"]')) tab.setAttribute('aria-selected', String(tab.dataset.page === page));

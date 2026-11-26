@@ -38,17 +38,21 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > section { grid-column: 2; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > aside:last-child { display: none !important; }
 
-/* Profile: the same two columns, with LinkedIn's right rail as the sidebar on the left.
-   Its own content is hidden: what's worth keeping is in our dashboard card (profile.ts),
-   and the footer's links are in Help & legal. */
-[data-sdui-screen$=".profile.Profile"] #workspace > div > div:has(> section + aside) {
+/* Profile and My Network: the same two columns, with LinkedIn's sidebar (the profile's right
+   rail) on the left. Its own content is hidden: what's worth keeping is in our cards
+   (profile.ts, network.ts), and the footer's links are in Help & legal. */
+:is([data-sdui-screen$=".profile.Profile"] #workspace > div > div, #workspace > div > div:has(> section [data-sdui-screen*=".mynetwork."])):has(> section):has(> aside) {
   grid-template-columns: 25fr 75fr;
   column-gap: 24px;
   & > aside { grid-column: 1; grid-row: 1; display: grid; align-content: start; gap: 8px; position: sticky; top: 24px; align-self: start; }
   & > section { grid-column: 2; grid-row: 1; }
   & > footer, & > aside > div:first-child { display: none !important; }
-  & #lt-dashboard { margin: 0; }
+  & :is(#lt-dashboard, #lt-network) { margin: 0; }
 }
+/* My Network's Premium upsells ("People who viewed your profile", "People interested in
+   services like yours"): their links go to Premium's sales page. And its puzzles. */
+[data-sdui-screen*=".mynetwork."] section:has(a[href*="/premium/products/"]),
+html[data-lt-hide-games] [data-sdui-screen*=".mynetwork."] section:has(a[href*="/games/"]) { display: none !important; }
 /* The bar LinkedIn slides in once the top card scrolls away: our mini profile in the
    sidebar does its job (profile.ts). */
 [data-sdui-screen$=".profile.Profile"] [role="toolbar"] { display: none; }
@@ -268,16 +272,16 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 :is(#lt-profile, #lt-mini) .lt-company img { width: 16px; height: 16px; border-radius: 4px; }
 
 /* Menu rows inside the profile card, sidebar-style */
-#lt-profile .lt-menu, #lt-dashboard .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }
-#lt-dashboard .lt-menu:first-child { border-top: 0; }
+#lt-profile .lt-menu, #lt-dashboard .lt-menu, #lt-network .lt-menu { display: grid; padding: 6px; border-top: 1px solid var(--lt-border); }
+:is(#lt-dashboard, #lt-network) .lt-menu:first-child { border-top: 0; }
 #lt-dashboard .lt-stack { display: grid; min-width: 0; }
 #lt-dashboard .lt-stack small { overflow: hidden; color: var(--lt-muted-fg); font-size: 12px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
 #lt-dashboard .lt-menu a:has(.lt-stack) svg { align-self: start; margin-top: 2px; }
-:is(#lt-profile, #lt-dashboard) .lt-menu a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
-:is(#lt-profile, #lt-dashboard) .lt-menu :is(svg, img) { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
+:is(#lt-profile, #lt-dashboard, #lt-network) .lt-menu a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; }
+:is(#lt-profile, #lt-dashboard, #lt-network) .lt-menu :is(svg, img) { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }
 #lt-profile .lt-menu img { border-radius: 4px; }
-:is(#lt-profile, #lt-dashboard) .lt-menu strong { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
-:is(#lt-profile, #lt-dashboard) .lt-menu-label { padding: 6px 10px 2px; color: var(--lt-muted-fg); font-weight: 500; }
+:is(#lt-profile, #lt-dashboard, #lt-network) .lt-menu strong { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+:is(#lt-profile, #lt-dashboard, #lt-network) .lt-menu-label { padding: 6px 10px 2px; color: var(--lt-muted-fg); font-weight: 500; }
 
 /* Games: one horizontally scrollable row */
 #lt-games { display: flex; gap: 2px; padding: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }

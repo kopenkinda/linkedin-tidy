@@ -15,7 +15,7 @@ export const OPTIONS = [
   { page: 'feed', key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
   { page: 'feed', key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
   { page: 'feed', key: 'hideAds', default: true, label: 'Hide promoted posts', hint: 'Ads in the feed that look like regular posts.' },
-  { page: 'feed', key: 'hideGames', default: false, label: 'Hide LinkedIn games', hint: 'The puzzles row in the sidebar.' },
+  { page: 'general', key: 'hideGames', default: false, label: 'Hide LinkedIn games', hint: 'The puzzles in the feed’s sidebar and on My Network.' },
   { page: 'feed', key: 'collapseFiltered', default: true, label: 'Show muted posts as a line', hint: 'Off hides posts with muted words completely.' },
   { page: 'profile', key: 'hideProfileSuggestions', default: true, label: 'Hide “Suggested for you”', hint: 'LinkedIn’s prompts to add to your profile, and people to follow.' },
   { page: 'profile', key: 'blurContacts', default: true, label: 'Blur contact info', hint: 'Emails, phone numbers and links stay blurred until you click them. Safer when sharing your screen.' },
