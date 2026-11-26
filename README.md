@@ -88,3 +88,7 @@ Builds write `manifest.json` and `linkedin.user.js` to `dist/`.
 To test the userscript live against your local build, install `tampermonkey-dev.user.js` in Tampermonkey, change its `@require` path to your checkout's `dist/linkedin.user.js`, and enable "Allow access to file URLs" for Tampermonkey in `chrome://extensions`.
 
 GitHub Actions (`.github/workflows/build.yml`) runs `pnpm check` and `pnpm build` on every push and pull request. Pushes to `main` also publish `linkedin-tidy.user.js` and `linkedin-tidy.zip` to the `dist` branch with the CI run number appended to the version so Tampermonkey picks up each new build.
+
+## License
+
+[MIT](LICENSE)
