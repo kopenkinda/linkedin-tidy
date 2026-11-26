@@ -2,7 +2,8 @@ import { config, mutedWords, OPTIONS, setConfig, setMutedWords, type ConfigKey }
 import { h, icon, type Icon } from './dom';
 import { ICONS } from './icons';
 
-// Quick settings under the games row: the theme toggle and the LinkedIn Plus dialog.
+// Quick settings under the games row: theme, language, the LinkedIn Plus dialog and LinkedIn's
+// footer links.
 
 // LinkedIn keeps the theme per device in two cookies and calls no API. Its own settings
 // page (Settings > Display > Dark mode) writes them and flips the page live; we do the
@@ -42,6 +43,37 @@ function setTheme(preference: Theme) {
 // system on an already-open page.
 export function followOsTheme(): void {
   osDark.addEventListener('change', () => setTimeout(() => applyTheme(themePreference())));
+}
+
+// LinkedIn's interface languages, as its footer's language picker lists them. The picker
+// saves the choice to the account and reloads; ours does the same from any page.
+const LOCALES: [code: string, name: string][] = [
+  ['ar_AE', 'العربية'], ['bn_IN', 'বাংলা'], ['cs_CZ', 'Čeština'], ['da_DK', 'Dansk'], ['de_DE', 'Deutsch'],
+  ['el_GR', 'Ελληνικά'], ['en_US', 'English'], ['es_ES', 'Español'], ['fa_IR', 'فارسی'], ['fi_FI', 'Suomi'],
+  ['fr_FR', 'Français'], ['hi_IN', 'हिंदी'], ['hu_HU', 'Magyar'], ['in_ID', 'Bahasa Indonesia'], ['it_IT', 'Italiano'],
+  ['iw_IL', 'עברית'], ['ja_JP', '日本語'], ['ko_KR', '한국어'], ['mr_IN', 'मराठी'], ['ms_MY', 'Bahasa Malaysia'],
+  ['nl_NL', 'Nederlands'], ['no_NO', 'Norsk'], ['pa_IN', 'ਪੰਜਾਬੀ'], ['pl_PL', 'Polski'], ['pt_BR', 'Português'],
+  ['ro_RO', 'Română'], ['ru_RU', 'Русский'], ['sv_SE', 'Svenska'], ['te_IN', 'తెలుగు'], ['th_TH', 'ภาษาไทย'],
+  ['tl_PH', 'Tagalog'], ['tr_TR', 'Türkçe'], ['uk_UA', 'Українська'], ['vi_VN', 'Tiếng Việt'], ['zh_CN', '简体中文'],
+  ['zh_TW', '正體中文'],
+];
+
+const cookie = (name: string) => document.cookie.match(new RegExp(`(?:^|;\\s*)${name}="?([^";]*)`))?.[1];
+
+/** The `lang` cookie holds "v=2&lang=ru-ru". */
+function currentLocale(): string {
+  const [lang = 'en', region = 'us'] = cookie('lang')?.match(/lang=(\w+)-(\w+)/)?.slice(1) ?? [];
+  return `${lang.toLowerCase()}_${region.toUpperCase()}`;
+}
+
+async function setLocale(locale: string): Promise<boolean> {
+  const response = await fetch('/psettings/select-language', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-requested-with': 'XMLHttpRequest', 'csrf-token': cookie('JSESSIONID') ?? '' },
+    body: JSON.stringify({ locale }),
+  });
+  if (response.ok) location.reload();
+  return response.ok;
 }
 
 function openConfig(onChange: () => void) {
@@ -108,15 +140,20 @@ const FOOTER: [group: string, links: [label: string, href: string][]][] = [
 
 /** `onChange` re-runs the page update so a theme or config change applies right away. */
 export function renderSettings(onChange: () => void): HTMLElement {
+  const locale = currentLocale();
   const option = (value: Theme, label: string, svg: Icon) =>
     h('button', { type: 'button', role: 'radio', 'aria-label': label, title: label, 'data-theme': value }, icon(svg));
   const root = h('div', { id: 'lt-settings' },
     h('div', { class: 'lt-setting' },
-      h('span', {}, 'Theme'),
       h('div', { role: 'radiogroup', 'aria-label': 'Theme' },
         option('light', 'Light', ICONS.sun),
         option('dark', 'Dark', ICONS.moon),
-        option('system', 'System', ICONS.monitor))),
+        option('system', 'System', ICONS.monitor)),
+      h('label', { class: 'lt-language', title: 'Language' },
+        icon(ICONS.languages),
+        h('select', { 'aria-label': 'Language' },
+          LOCALES.map(([code, name]) => h('option', { value: code, selected: code === locale }, name))),
+        icon(ICONS.chevronDown))),
     h('button', { type: 'button', class: 'lt-plus', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)),
     h('button', { type: 'button', class: 'lt-plus', popovertarget: 'lt-links' }, h('span', {}, 'Help & legal'), icon(ICONS.info)),
     h('div', { id: 'lt-links', popover: '' },
@@ -135,6 +172,15 @@ export function renderSettings(onChange: () => void): HTMLElement {
       setTheme(value);
       onChange();
     }
+  });
+  root.addEventListener('change', (e) => {
+    const select = e.target as HTMLSelectElement;
+    setLocale(select.value).then(
+      (ok) => ok || (select.value = locale),
+      (error) => {
+        console.warn('[LinkedIn Plus]', error);
+        select.value = locale;
+      });
   });
   return root;
 }

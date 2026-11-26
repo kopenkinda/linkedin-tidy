@@ -342,6 +342,13 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 #lt-settings button:hover { color: var(--lt-fg); }
 #lt-settings button[aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
 #lt-settings svg { width: 16px; height: 16px; }
+#lt-settings .lt-language { position: relative; display: flex; align-items: center; height: 30px; box-sizing: border-box; border: 1px solid var(--lt-border); border-radius: 8px; cursor: pointer; }
+#lt-settings .lt-language:hover { color: var(--lt-fg); }
+#lt-settings .lt-language:has(select:focus-visible) { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
+#lt-settings .lt-language svg { position: absolute; pointer-events: none; }
+#lt-settings .lt-language svg:first-child { left: 8px; }
+#lt-settings .lt-language svg:last-child { right: 6px; width: 14px; height: 14px; }
+#lt-settings .lt-language select { appearance: none; height: 100%; padding: 0 26px 0 30px; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; outline: none; }
 #lt-settings .lt-plus { width: 100%; height: auto; justify-content: space-between; display: flex; padding: 4px 4px 4px 0; font: inherit; }
 #lt-settings .lt-plus[popovertarget] { anchor-name: --lt-links; }
 #lt-links {
