@@ -1,5 +1,5 @@
 import { config } from './config';
-import { h, icon, sync, type Icon } from './dom';
+import { h, icon, sync, until, type Icon } from './dom';
 import { ICONS } from './icons';
 import { personHead, type Person } from './rail';
 import { refreshSettings, renderSettings } from './settings';
@@ -90,29 +90,68 @@ function readPerson(page: Element): Person | null {
   };
 }
 
-// Always at the top of the sidebar. LinkedIn's sticky bar (shown once the top card scrolls
-// away) is hidden, and its action buttons are moved onto the empty actions row (styles.css):
-// that bar sits outside the page's scroll container, so the moved buttons keep up with the
-// sticky sidebar, and their menus open beside them.
-function renderMini(p: Person): HTMLElement {
-  return h('section', { id: 'lt-mini', class: 'lt-card' }, personHead(p), h('div', { class: 'lt-mini-actions' }));
+// The top card's action buttons: Open to, Add section, Enhance profile and ⋯ on yours;
+// Message, Connect or Follow, and ⋯ on someone else's. LinkedIn also renders a hidden set
+// for narrow windows, so take the visible one.
+function topActions(page: Element): HTMLElement[] {
+  const groups = page.querySelectorAll('[componentkey$="Topcard"] div:has(> [data-display-contents] > button svg#ellipses-horizontal-fill-small)');
+  const group = [...groups].find((g) => g.getClientRects().length);
+  const own = !!page.querySelector('button[componentkey$="_openToButton"]');
+  return [...(group?.querySelectorAll<HTMLElement>(':scope > [data-display-contents] > :is(a, button)') ?? [])]
+    // On your own profile only the two that open a menu: Open to and ⋯.
+    .filter((el) => !own || el.hasAttribute('aria-expanded'));
 }
 
-// While the top card is in view LinkedIn makes the bar inert and aria-hidden, which would
-// disable the moved buttons. Undo that whenever it's set; the rest of the bar stays hidden.
-const awake = new WeakSet<Element>();
-const wake = (bar: Element) => {
-  if (bar.hasAttribute('inert')) bar.removeAttribute('inert');
-  if (bar.hasAttribute('aria-hidden')) bar.removeAttribute('aria-hidden');
-};
-const barWatch = new MutationObserver((records) => records.forEach((r) => wake(r.target as Element)));
+export interface Mini extends Person {
+  actions: { label: string; more: boolean }[];
+}
 
-function keepBarAwake(page: Element) {
-  const bar = page.querySelector('[role="toolbar"]');
-  if (!bar || awake.has(bar)) return;
-  awake.add(bar);
-  wake(bar);
-  barWatch.observe(bar, { attributes: true, attributeFilter: ['inert', 'aria-hidden'] });
+function readMini(page: Element): Mini | null {
+  const person = readPerson(page);
+  const actions = topActions(page).map((el) => ({
+    label: text(el) || (el.getAttribute('aria-label') ?? ''),
+    more: !!el.querySelector('svg#ellipses-horizontal-fill-small'),
+  }));
+  return person && { ...person, actions };
+}
+
+// Always at the top of the sidebar, with stand-ins for the top card's buttons that click the
+// real ones. LinkedIn's own sticky bar, which repeats them once the top card scrolls away,
+// is hidden (styles.css).
+function renderMini(m: Mini): HTMLElement {
+  const card = h('section', { id: 'lt-mini', class: 'lt-card' },
+    personHead(m),
+    m.actions.length > 0 && h('div', { class: 'lt-mini-actions' },
+      m.actions.map((a, i) => h('button', { type: 'button', 'data-index': i, 'aria-label': a.more ? a.label : null, class: a.more ? 'lt-more-button' : null },
+        a.more ? icon(ICONS.ellipsis) : a.label))));
+  card.addEventListener('click', (e) => {
+    const fake = (e.target as Element).closest<HTMLElement>('[data-index]');
+    const page = document.querySelector(PROFILE);
+    if (fake && page) void press(page, Number(fake.dataset.index), fake);
+  });
+  return card;
+}
+
+const openPopovers = () => [...document.querySelectorAll<HTMLElement>('[popover]:popover-open')];
+
+// A menu (⋯, Open to) opens next to the button that was clicked, which may be scrolled off
+// screen; pin the one that opens to our stand-in instead (styles.css, [data-lt-pinned]).
+async function press(page: Element, index: number, fake: HTMLElement) {
+  const real = topActions(page)[index];
+  if (!real) return;
+  const before = new Set(openPopovers());
+  real.click();
+  const menu = await until(() => openPopovers().find((p) => !before.has(p)), 1000).catch(() => undefined);
+  if (!menu) return;
+  for (const b of fake.parentElement?.children ?? []) (b as HTMLElement).style.removeProperty('anchor-name');
+  fake.style.setProperty('anchor-name', '--lt-pressed');
+  menu.setAttribute('data-lt-pinned', '');
+  const unpin = (e: Event) => {
+    if ((e as ToggleEvent).newState !== 'closed') return;
+    menu.removeAttribute('data-lt-pinned');
+    menu.removeEventListener('toggle', unpin);
+  };
+  menu.addEventListener('toggle', unpin);
 }
 
 export function updateProfile(onChange: () => void): void {
@@ -121,9 +160,8 @@ export function updateProfile(onChange: () => void): void {
   const aside = page?.querySelector('#workspace aside');
   document.documentElement.toggleAttribute('data-lt-hide-suggestions', config().hideProfileSuggestions);
   if (!page || !main || !aside?.firstElementChild) return;
-  keepBarAwake(page);
   // After LinkedIn's (hidden) content.
-  const mini = sync('lt-mini', readPerson(page), renderMini, aside.firstElementChild);
+  const mini = sync('lt-mini', readMini(page), renderMini, aside.firstElementChild);
   const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, mini ?? aside.firstElementChild);
   sync('lt-settings', true, () => renderSettings(onChange), dashboard ?? mini ?? aside.firstElementChild);
   refreshSettings();

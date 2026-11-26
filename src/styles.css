@@ -48,29 +48,30 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
   & > footer, & > aside > div:first-child { display: none !important; }
   & #lt-dashboard { margin: 0; }
 }
-/* Scrolled past the top card, LinkedIn slides in a bar with your name and actions. It stays
-   hidden; our mini profile is always at the top of the sidebar, and the bar's action buttons
-   move onto its empty row (profile.ts keeps them enabled): still LinkedIn's buttons, so
-   their menus open where they now are. */
-[data-sdui-screen$=".profile.Profile"] {
-  & [role="toolbar"] { visibility: hidden; transform: none !important; will-change: auto !important; }
-  & [role="toolbar"] div:has(> [data-display-contents] > button svg#ellipses-horizontal-fill-small) {
-    visibility: visible;
-    position: fixed;
-    position-anchor: --lt-mini-actions;
-    top: anchor(top);
-    left: anchor(left);
-    width: anchor-size(width);
-    margin: 0;
-    flex-direction: row-reverse; /* Open to first, then ⋯ */
-    justify-content: flex-end;
-    gap: 8px;
-  }
-}
+/* The bar LinkedIn slides in once the top card scrolls away: our mini profile in the
+   sidebar does its job (profile.ts). */
+[data-sdui-screen$=".profile.Profile"] [role="toolbar"] { display: none; }
 #lt-mini { margin: 0; }
-#lt-mini .lt-mini-actions { height: 32px; margin: 0 16px 16px; anchor-name: --lt-mini-actions; }
-/* On your own profile: Open to and ⋯ only, not Enhance profile and Add section. */
-[data-sdui-screen$=".profile.Profile"]:has(button[componentkey$="_openToButton"]) [role="toolbar"] [data-display-contents]:has(> :is(a, button:not([aria-expanded]))) { display: none !important; }
+#lt-mini .lt-mini-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
+#lt-mini .lt-mini-actions button {
+  height: 32px; padding: 0 14px; border: 1px solid var(--lt-primary); border-radius: 9999px;
+  background: none; color: var(--lt-primary); font: inherit; font-weight: 600; cursor: pointer;
+  &:first-child { background: var(--lt-primary); color: var(--lt-card); }
+  &:hover { box-shadow: inset 0 0 0 1px var(--lt-primary); }
+  &.lt-more-button { display: grid; place-items: center; width: 32px; padding: 0; border-color: var(--lt-border); color: var(--lt-muted-fg); }
+  &:focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 2px; }
+  & svg { width: 16px; height: 16px; }
+}
+/* A menu opened from the mini profile, pinned under its button instead of the real one. */
+[popover][data-lt-pinned] {
+  position-anchor: --lt-pressed;
+  position-try-fallbacks: flip-block;
+  top: calc(anchor(bottom) + 4px) !important;
+  left: anchor(left) !important;
+  transform: none !important;
+  translate: none !important;
+  margin: 0 !important;
+}
 html[data-lt-hide-suggestions] [componentkey$="SuggestedForYou"] { display: none !important; }
 /* Your dashboard moves to the sidebar. */
 [data-sdui-screen$=".profile.Profile"] #workspace section [data-testid="lazy-column"] section:has(a[href*="/analytics/search-appearances/"]):not(:has(section a[href*="/analytics/"])) { display: none; }
