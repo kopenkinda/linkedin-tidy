@@ -19,6 +19,8 @@
    reload. Let the attribute decide (unlayered, so it beats LinkedIn's layers). */
 body[data-color-scheme="light"] { color-scheme: light; }
 body[data-color-scheme="dark"] { color-scheme: dark; }
+/* Ember pages (messaging) mark dark mode with a class only; our colours need the scheme. */
+html.theme--mercado-dark { color-scheme: dark; }
 
 /* One text size. LinkedIn's CSS is all inside @layer, so these unlayered,
    zero-specificity rules still beat it while anything below can override them. */
@@ -482,12 +484,12 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 
 /* Messaging: one column. The sidebar (Page inboxes, an ad, the footer) goes; the inboxes are
    links in the filter row instead (messaging.ts). The floating Messaging bar repeats the page. */
-.scaffold-layout__row:has(.msg-conversations-container) {
+.scaffold-layout__row:has(> .msg__list-detail) {
   grid-template-columns: 1fr !important;
   grid-template-areas: "main" !important;
   & > .scaffold-layout__aside { display: none; }
 }
-body:has(.msg-conversations-container) #msg-overlay { display: none; }
+body:has(.msg__list-detail) #msg-overlay { display: none; }
 .msg-conversations-container__title-row:has(#lt-inboxes) { justify-content: space-between; gap: 8px; }
 #lt-inboxes {
   display: flex; flex: none; align-items: center; gap: 6px; padding-right: 12px; font-family: var(--lt-font); font-size: 13px;
