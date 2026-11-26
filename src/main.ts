@@ -11,6 +11,7 @@ import { addStyle, sync } from './dom';
 import { installMutedReveal, markPosts } from './feed';
 import { extendMoreMenu, matchPageWidth } from './nav';
 import { updateSidebar } from './sidebar';
+import { markJobs } from './jobs';
 import { installPickerGuard } from './picker';
 import { updateProfile } from './profile';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
@@ -40,6 +41,7 @@ function update() {
   extendMoreMenu();
   matchPageWidth();
   markPosts();
+  markJobs();
 }
 
 if (!window.__linkedinTidy) {

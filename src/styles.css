@@ -90,6 +90,20 @@ html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] #workspace sectio
   & dt { color: var(--lt-fg); font-weight: 600; }
   & dd { margin: 0; color: var(--lt-muted-fg); }
 }
+/* Jobs home: the Hiring Pro upsell ("hire top talent without the busywork"). Job search:
+   the Premium row in the results ("See jobs where you're a top applicant"). */
+[componentkey$="HomeFeedModuleListLazyColumnContainer"] > :has(a[href*="/job-posting/"]),
+[componentkey="SearchResultsMainContent"] > :has(a[href*="/premium/products/"]) { display: none !important; }
+/* Job search: promoted listings (jobs.ts) get an amber edge and their word as a badge. */
+[componentkey^="job-card-component-ref-"]:has([data-lt-promoted]) { box-shadow: inset 3px 0 0 var(--lt-premium); }
+[data-lt-promoted] { padding: 0 6px; border-radius: 9999px; background: color-mix(in srgb, var(--lt-premium) 15%, transparent); color: var(--lt-premium); font-weight: 600; }
+/* A dismissed job collapses to its title and company, faded, with LinkedIn's Undo
+   (its × turns into an arrow). */
+[componentkey^="job-card-component-ref-"]:has(button svg#arrow-curve-left-outline-small) {
+  & figure, & div:has(> p > span) ~ p, & div:has(p > span) ~ p { display: none !important; }
+  & [role="button"] { opacity: 0.6; }
+  & [role="button"] * { padding-block: 0 !important; min-height: 0 !important; }
+}
 /* Sales Insights, while it's an upsell: its links go to Premium's sales page. With Premium
    it's the real thing and stays. */
 [data-sdui-screen$=".profile.Profile"] [componentkey$="SalesInsightsOrHighlights"]:has(a[href*="/premium/products/"]) { display: none !important; }
