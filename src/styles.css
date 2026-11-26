@@ -52,9 +52,12 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
    sidebar does its job (profile.ts). */
 [data-sdui-screen$=".profile.Profile"] [role="toolbar"] { display: none; }
 #lt-mini { margin: 0; }
+#lt-mini .lt-mini-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: -4px 16px 12px; color: var(--lt-muted-fg); }
+#lt-mini .lt-mini-stats strong { color: var(--lt-fg); font-weight: 600; }
+#lt-mini .lt-mini-stats a:hover { background: none; text-decoration: underline; }
 #lt-mini .lt-mini-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
 #lt-mini .lt-mini-actions button {
-  height: 32px; padding: 0 14px; border: 1px solid var(--lt-primary); border-radius: 9999px;
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border: 1px solid var(--lt-primary); border-radius: 9999px;
   background: none; color: var(--lt-primary); font: inherit; font-weight: 600; cursor: pointer;
   &:first-child { background: var(--lt-primary); color: var(--lt-card); }
   &:hover { box-shadow: inset 0 0 0 1px var(--lt-primary); }

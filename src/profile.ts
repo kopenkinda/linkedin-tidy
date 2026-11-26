@@ -91,28 +91,45 @@ function readPerson(page: Element): Person | null {
 }
 
 // The top card's action buttons: Open to, Add section, Enhance profile and ⋯ on yours;
-// Message, Connect or Follow, and ⋯ on someone else's. LinkedIn also renders a hidden set
-// for narrow windows, so take the visible one.
+// Follow or Following, Connect, Message, ⋯ and the like on someone else's. LinkedIn also
+// renders a hidden set for narrow windows, so start from the visible ⋯.
 function topActions(page: Element): HTMLElement[] {
-  const groups = page.querySelectorAll('[componentkey$="Topcard"] div:has(> [data-display-contents] > button svg#ellipses-horizontal-fill-small)');
-  const group = [...groups].find((g) => g.getClientRects().length);
+  const more = [...page.querySelectorAll('[componentkey$="Topcard"] button:has(svg#ellipses-horizontal-fill-small)')].find((b) => b.getClientRects().length);
+  const row = more?.parentElement?.parentElement;
   const own = !!page.querySelector('button[componentkey$="_openToButton"]');
-  return [...(group?.querySelectorAll<HTMLElement>(':scope > [data-display-contents] > :is(a, button)') ?? [])]
+  return [...(row?.querySelectorAll<HTMLElement>('[data-display-contents] > :is(a, button)') ?? [])]
     // On your own profile only the two that open a menu: Open to and ⋯.
     .filter((el) => !own || el.hasAttribute('aria-expanded'));
 }
 
+// LinkedIn's icon on an action, as ours.
+const ACTION_ICONS: [id: string, svg: Icon][] = [
+  ['ellipses-horizontal', ICONS.ellipsis],
+  ['person-plus', ICONS.userPlus], // Connect
+  ['plus', ICONS.plus], // Follow
+  ['check', ICONS.userCheck], // Following
+  ['paper-plane', ICONS.send], // Message
+];
+const actionIcon = (id: string) => ACTION_ICONS.find(([prefix]) => id.startsWith(prefix))?.[1];
+
 export interface Mini extends Person {
-  actions: { label: string; more: boolean }[];
+  stats: { value: string; label: string; href?: string }[];
+  actions: { label: string; icon: string }[];
 }
 
 function readMini(page: Element): Mini | null {
   const person = readPerson(page);
+  if (!person) return null;
+  // "409,476 followers", "500+ connections": the top card's lines that start with a number.
+  const stats = [...page.querySelectorAll('[componentkey$="Topcard"] p')].flatMap((p) => {
+    const m = text(p).match(/^(\d[\d\s.,]*\+?)\s+(\S.*)$/);
+    return m?.[1] && m[2] ? [{ value: m[1], label: m[2], href: p.closest('a')?.href }] : [];
+  });
   const actions = topActions(page).map((el) => ({
     label: text(el) || (el.getAttribute('aria-label') ?? ''),
-    more: !!el.querySelector('svg#ellipses-horizontal-fill-small'),
+    icon: el.querySelector('svg[id]')?.id ?? '',
   }));
-  return person && { ...person, actions };
+  return { ...person, stats, actions };
 }
 
 // Always at the top of the sidebar, with stand-ins for the top card's buttons that click the
@@ -121,9 +138,15 @@ function readMini(page: Element): Mini | null {
 function renderMini(m: Mini): HTMLElement {
   const card = h('section', { id: 'lt-mini', class: 'lt-card' },
     personHead(m),
+    m.stats.length > 0 && h('p', { class: 'lt-mini-stats' },
+      m.stats.map((st) => h(st.href ? 'a' : 'span', { href: st.href }, h('strong', {}, st.value), ` ${st.label}`))),
     m.actions.length > 0 && h('div', { class: 'lt-mini-actions' },
-      m.actions.map((a, i) => h('button', { type: 'button', 'data-index': i, 'aria-label': a.more ? a.label : null, class: a.more ? 'lt-more-button' : null },
-        a.more ? icon(ICONS.ellipsis) : a.label))));
+      m.actions.map((a, i) => {
+        const svg = actionIcon(a.icon);
+        const more = svg === ICONS.ellipsis;
+        return h('button', { type: 'button', 'data-index': i, 'aria-label': more ? a.label : null, class: more ? 'lt-more-button' : null },
+          svg && icon(svg), !more && a.label);
+      })));
   card.addEventListener('click', (e) => {
     const fake = (e.target as Element).closest<HTMLElement>('[data-index]');
     const page = document.querySelector(PROFILE);
