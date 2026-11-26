@@ -1,4 +1,4 @@
-import { config, OPTIONS, setConfig, type ConfigKey } from './config';
+import { config, mutedWords, OPTIONS, setConfig, setMutedWords, type ConfigKey } from './config';
 import { h, icon, type Icon } from './dom';
 import { ICONS } from './icons';
 
@@ -55,10 +55,18 @@ function openConfig(onChange: () => void) {
       h('p', { class: 'lt-config-desc' }, 'Tweaks on top of LinkedIn. Saved in this browser.'),
       OPTIONS.map((o) => h('label', { class: 'lt-option' },
         h('span', {}, h('strong', {}, o.label), h('small', {}, o.hint)),
-        h('input', { type: 'checkbox', role: 'switch', 'data-key': o.key, checked: current[o.key] }))));
+        h('input', { type: 'checkbox', role: 'switch', 'data-key': o.key, checked: current[o.key] }))),
+      h('label', { class: 'lt-option lt-muted-words' },
+        h('span', {}, h('strong', {}, 'Muted words'), h('small', {}, 'One per line. Posts that mention any of them are filtered out.')),
+        h('textarea', { rows: 4, spellcheck: 'false', placeholder: 'crypto\nopen to work' }, mutedWords().join('\n'))));
+    // A textarea fires `change` when it loses focus, which closing the dialog also causes.
     created.addEventListener('change', (e) => {
-      const input = e.target as HTMLInputElement;
-      setConfig(input.dataset.key as ConfigKey, input.checked);
+      const input = e.target as HTMLInputElement | HTMLTextAreaElement;
+      if (input instanceof HTMLTextAreaElement) {
+        setMutedWords([...new Set(input.value.split(/[\n,]/).map((w) => w.trim()).filter(Boolean))]);
+      } else {
+        setConfig(input.dataset.key as ConfigKey, input.checked);
+      }
       onChange();
     });
     // Close on the X or a click on the backdrop (the dialog element itself).

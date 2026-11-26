@@ -7,7 +7,7 @@
 // - Ember (messaging page, floating chat): readable classes and named design tokens.
 import { enhanceComposer, installComposerDock, placeCompose } from './composer';
 import { addStyle, sync } from './dom';
-import { markAds } from './feed';
+import { installMutedReveal, markPosts } from './feed';
 import { addFooterToMoreMenu } from './nav';
 import { installPickerGuard } from './picker';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
@@ -31,7 +31,7 @@ function update() {
   placeCompose();
   enhanceComposer();
   addFooterToMoreMenu();
-  markAds();
+  markPosts();
 }
 
 if (!window.__linkedinTidy) {
@@ -40,6 +40,7 @@ if (!window.__linkedinTidy) {
   addStyle('lt-style', css);
   installPickerGuard();
   installComposerDock();
+  installMutedReveal();
   followOsTheme();
   // A dialog can close without any DOM change; `close` doesn't bubble, so listen in capture.
   document.addEventListener('close', () => update(), true);

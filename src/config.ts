@@ -6,6 +6,7 @@ export const OPTIONS = [
   { key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
   { key: 'hideAds', default: true, label: 'Hide promoted posts', hint: 'Ads in the feed that look like regular posts.' },
   { key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
+  { key: 'collapseFiltered', default: true, label: 'Show muted posts as a line', hint: 'Off hides posts with muted words completely.' },
 ] as const;
 
 export type ConfigKey = (typeof OPTIONS)[number]['key'];
@@ -33,14 +34,33 @@ function storage() {
   return nativeStorage;
 }
 
-export function config(): Config {
-  let saved: Partial<Config> = {};
+function saved(): Record<string, unknown> {
   try {
-    saved = JSON.parse(storage().get(CONFIG_KEY) ?? '{}') as Partial<Config>;
-  } catch {}
-  return Object.fromEntries(OPTIONS.map((o) => [o.key, saved[o.key] ?? o.default])) as Config;
+    return JSON.parse(storage().get(CONFIG_KEY) ?? '{}') as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function save(patch: Record<string, unknown>) {
+  storage().set(CONFIG_KEY, JSON.stringify({ ...saved(), ...patch }));
+}
+
+export function config(): Config {
+  const values = saved();
+  return Object.fromEntries(OPTIONS.map((o) => [o.key, typeof values[o.key] === 'boolean' ? values[o.key] : o.default])) as Config;
 }
 
 export function setConfig(key: ConfigKey, value: boolean): void {
-  storage().set(CONFIG_KEY, JSON.stringify({ ...config(), [key]: value }));
+  save({ [key]: value });
+}
+
+/** Words and phrases that filter a post out of the feed. */
+export function mutedWords(): string[] {
+  const words = saved().mutedWords;
+  return Array.isArray(words) ? words.filter((w): w is string => typeof w === 'string') : [];
+}
+
+export function setMutedWords(words: string[]): void {
+  save({ mutedWords: words });
 }
