@@ -59,6 +59,11 @@ html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] [componentkey$="T
   position: absolute !important; inset: 0 0 auto; visibility: hidden; pointer-events: none;
   & :is([popover], dialog) { visibility: visible; pointer-events: auto; }
 }
+/* Someone else's profile starts with About. Yours keeps LinkedIn's order. */
+html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] #workspace section [componentkey$="About"] { order: -1; }
+/* Sales Insights, while it's an upsell: its links go to Premium's sales page. With Premium
+   it's the real thing and stays. */
+[data-sdui-screen$=".profile.Profile"] [componentkey$="SalesInsightsOrHighlights"]:has(a[href*="/premium/products/"]) { display: none !important; }
 /* Contact info's values, blurred until clicked (profile.ts). */
 html[data-lt-blur-contacts] [data-sdui-screen$=".ProfileContactDetailsOverlay"] svg[id] + div > p:not(:first-child):not([data-lt-revealed]) {
   filter: blur(5px); cursor: pointer; user-select: none;
