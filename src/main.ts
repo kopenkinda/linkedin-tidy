@@ -8,7 +8,7 @@
 import { enhanceComposer, installComposerDock, placeCompose } from './composer';
 import { addStyle, sync } from './dom';
 import { installMutedReveal, markPosts } from './feed';
-import { addFooterToMoreMenu } from './nav';
+import { extendMoreMenu, matchPageWidth } from './nav';
 import { installPickerGuard } from './picker';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
 import { followOsTheme, renderSettings, themePreference } from './settings';
@@ -30,7 +30,8 @@ function update() {
   }
   placeCompose();
   enhanceComposer();
-  addFooterToMoreMenu();
+  extendMoreMenu();
+  matchPageWidth();
   markPosts();
 }
 
