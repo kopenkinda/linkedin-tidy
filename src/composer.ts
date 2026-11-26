@@ -151,6 +151,13 @@ function tagToolbar(toolbar: Element) {
       for (const group of part.children) {
         if (!group.querySelector('svg#image-outline-medium')) continue;
         tag(group, 'insert');
+        // Media gets its own divider: the rest are post types (event, job, poll, ...).
+        let items = group.firstElementChild;
+        while (items && items.children.length === 1) items = items.firstElementChild;
+        tag(items, 'items');
+        for (const item of items?.children ?? []) {
+          if (item.querySelector('svg#image-outline-medium')) tag(item, 'media');
+        }
         // The +/× toggle that shows Event, Job, Poll and Document inline.
         const toggle = group.lastElementChild;
         if (toggle?.querySelector('svg#plus-outline-medium, svg#xmark-outline-medium') && !toggle.querySelector('svg#image-outline-medium')) tag(toggle, 'more');

@@ -177,8 +177,15 @@ dialog:has([data-sdui-screen$="ShareCompose"]):focus-visible,
 /* Formatting (emoji, bold) | inserts (media, celebration, event, job, poll, document) ... Proofread */
 [data-lt-c="toolrow"] { flex: 1; display: flex; align-items: center; gap: 8px; }
 [data-lt-c="proofread"] { order: 2; margin-left: auto; }
-[data-lt-c="tools"], [data-lt-c="tools"] div { align-items: center; gap: 4px; }
-[data-lt-c="insert"] { margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--lt-border); }
+/* Gaps only on the two real rows: each button's own wrappers are grids with an empty first
+   column, so a gap there would push the button sideways. */
+[data-lt-c="tools"], [data-lt-c="items"] { display: flex; align-items: center; gap: 4px; }
+[data-lt-c="tools"] > * { margin: 0; }
+/* 8px either side of each divider: emoji, bold | media | celebration, event, job, ... */
+[data-lt-c="tools"] > [data-lt-c="insert"] { margin-left: 4px; padding-left: 8px; border-left: 1px solid var(--lt-border); }
+[data-lt-c="media"] { margin-right: 4px; padding-right: 8px; border-right: 1px solid var(--lt-border); }
+/* Bold sits in wrappers fixed at 48px wide around its 32px button; let them fit. */
+[data-sdui-screen$="ShareCompose"] div:has(svg#text-bold-fill-medium):not(:has(svg#emoji-outline-medium), :has(> svg#text-bold-fill-medium), :has(> div > svg#text-bold-fill-medium)) { width: fit-content; min-width: 0; grid-template-columns: auto; }
 [data-lt-c="more"] { display: none !important; }
 [data-lt-c="main"] { position: relative; }
 /* The header is sticky, which would make it the chips' containing block. */
