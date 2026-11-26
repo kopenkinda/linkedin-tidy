@@ -61,8 +61,7 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 [data-testid="mainFeed"] > :has([componentkey^="Launchpad"]) { display: none !important; }
 
 /* Feed posts. A post is a fixed frame: context line ("X likes this"), author header, text,
-   one media block, the action bar, then a comments section (LinkedIn previews one comment
-   when the context is "X commented"). */
+   one media block, the action bar, then a comments section. */
 :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"] {
   border-radius: var(--lt-radius);
 
@@ -89,9 +88,6 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
   }
   & [style*="aspect-ratio"] [style*="aspect-ratio"] { aspect-ratio: auto !important; height: 100%; }
   & [style*="aspect-ratio"] :is(img, video) { max-height: 500px; object-fit: contain; }
-
-  /* Comments under a post read as replies to it. */
-  & [componentkey^="replaceableComment_"] { margin-left: 16px; padding-left: 12px; border-left: 2px solid var(--lt-border); }
 }
 
 /* Promoted posts and posts with muted words, tagged by feed.ts. The settings toggle the
