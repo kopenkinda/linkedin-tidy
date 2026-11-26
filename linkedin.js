@@ -140,38 +140,30 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 #lt-config input[role="switch"]:checked::before { translate: 14px 0; }
 #lt-config input[role="switch"]:focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 2px; }
 
-/* Composer. Our box replaces LinkedIn's sharebox (hidden, but still clicked through).
-   When opened from it, LinkedIn's composer dialog is anchored onto our box with no
-   backdrop, and our box grows to the dialog's height, so it reads as inline. */
+/* Composer. Our box replaces LinkedIn's sharebox (hidden, but kept: its "Start a post"
+   button is how we open LinkedIn's composer). Posting fills that composer in the
+   background while it is invisible; it only shows if something goes wrong. */
 [data-testid="mainFeed"] > :has(#draft-text-replaceable-component) { display: none !important; }
-#lt-compose { display: grid; gap: 8px; padding: 12px; anchor-name: --lt-compose; }
+#lt-compose { display: grid; gap: 8px; padding: 12px; }
 #lt-compose button, #lt-compose .lt-compose-bar a { all: unset; box-sizing: border-box; cursor: pointer; }
-#lt-compose .lt-compose-input { padding: 10px 12px; border: 1px solid var(--lt-border); border-radius: 8px; color: var(--lt-muted-fg); cursor: text; }
-#lt-compose .lt-compose-input:hover { background: var(--lt-muted); }
+#lt-compose textarea { box-sizing: border-box; width: 100%; min-height: 40px; max-height: 50vh; field-sizing: content; resize: none; margin: 0; padding: 9px 12px; border: 1px solid var(--lt-border); border-radius: 8px; background: transparent; color: var(--lt-fg); font: inherit; }
+#lt-compose textarea::placeholder { color: var(--lt-muted-fg); }
+#lt-compose textarea:focus { outline: none; border-color: var(--lt-muted-fg); }
 #lt-compose .lt-compose-bar { display: flex; align-items: center; gap: 4px; }
-#lt-compose .lt-compose-as { margin-right: auto; padding-left: 4px; color: var(--lt-muted-fg); }
-#lt-compose .lt-compose-as strong { color: var(--lt-fg); font-weight: 500; }
+#lt-compose .lt-compose-as { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; padding-left: 4px; color: var(--lt-muted-fg); }
+#lt-compose select { padding: 4px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--lt-fg); font: inherit; font-weight: 500; cursor: pointer; }
+#lt-compose select:hover { background: var(--lt-muted); }
 #lt-compose .lt-compose-bar :is(button, a) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-weight: 500; }
 #lt-compose .lt-compose-bar :is(button, a):hover { background: var(--lt-muted); }
-#lt-compose :is(button, a):focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
+#lt-compose .lt-compose-bar .lt-compose-post { margin-left: 4px; padding: 6px 14px; background: var(--lt-primary); color: var(--lt-card); }
+#lt-compose .lt-compose-bar .lt-compose-post:hover { background: var(--lt-primary); opacity: 0.9; }
+#lt-compose .lt-compose-post:disabled { opacity: 0.5; cursor: default; }
+#lt-compose :is(button, a, select):focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
 #lt-compose svg { width: 16px; height: 16px; color: var(--lt-muted-fg); }
-html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"]) {
-  position: fixed;
-  position-anchor: --lt-compose;
-  inset: auto;
-  top: anchor(top);
-  left: anchor(left);
-  width: anchor-size(width);
-  max-width: none;
-  margin: 0;
-  transform: none;
-  translate: none;
-  box-shadow: none;
-  border: 1px solid var(--lt-border);
-  border-radius: var(--lt-radius);
-  background: var(--lt-card);
-}
-html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backdrop { background: transparent; }
+#lt-compose .lt-compose-status { margin: 0; padding-left: 4px; color: var(--lt-muted-fg); }
+#lt-compose .lt-compose-status:empty { display: none; }
+html[data-lt-ghost] :is(dialog[open]:has([data-sdui-screen$="ShareCompose"]), [popover]:has(input[type="radio"])) { opacity: 0 !important; pointer-events: none !important; }
+html[data-lt-ghost] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backdrop { background: transparent !important; }
 
 /* Footer links, folded into the nav's More menu */
 .lt-about { margin-top: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }
@@ -414,7 +406,7 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
   // applies without a reload.
   const CONFIG_KEY = 'linkedin-plus';
   const OPTIONS = [
-    { key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Instead of LinkedIn’s centered popup.' },
+    { key: 'inlineComposer', default: true, label: 'Write posts in the feed', hint: 'Off opens LinkedIn’s popup composer instead.' },
     { key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
   ];
 
@@ -537,76 +529,147 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
 
   // --- Composer -----------------------------------------------------------------------
 
+  // Our box is the editor. Publishing still goes through LinkedIn's own composer: we
+  // open it from the hidden sharebox, pick the identity, type the text and press Post,
+  // all while it is invisible (html[data-lt-ghost]). If any step stalls, the composer
+  // is revealed with everything filled in, so nothing is lost.
   const COMPOSE_DIALOG = 'dialog[open]:has([data-sdui-screen$="ShareCompose"])';
-  // pending: we asked LinkedIn to open it; open: it is showing anchored to our box.
-  let composer = { state: 'idle', since: 0 };
-  const composerSize = new ResizeObserver(([entry]) => {
-    const box = document.getElementById('lt-compose');
-    if (box) box.style.minHeight = `${entry.borderBoxSize[0].blockSize}px`;
-  });
 
-  function waitFor(find, then, timeout = 4000) {
-    const start = Date.now();
-    (function poll() {
-      const el = find();
-      if (el) then(el);
-      else if (Date.now() - start < timeout) requestAnimationFrame(poll);
-    })();
+  function until(find, timeout = 6000) {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      (function poll() {
+        const found = find();
+        if (found) resolve(found);
+        else if (Date.now() - start > timeout) reject(new Error('LinkedIn composer did not respond'));
+        else setTimeout(poll, 50);
+      })();
+    });
   }
 
-  // LinkedIn's sharebox stays mounted but hidden; its "Start a post" button opens the composer.
-  function openComposer(then) {
+  async function fillComposer(text, as) {
     const start = document.getElementById('draft-text-replaceable-component')?.closest('[role="button"]');
-    if (!start) return;
-    document.getElementById('lt-compose').scrollIntoView({ block: 'nearest' });
-    if (config().inlineComposer) document.documentElement.setAttribute('data-lt-inline', '');
-    composer = { state: 'pending', since: Date.now() };
+    if (!start) throw new Error('LinkedIn sharebox not found');
     start.click();
-    if (then) waitFor(() => document.querySelector(COMPOSE_DIALOG), then);
+    const dialog = await until(() => document.querySelector(COMPOSE_DIALOG));
+    // The "post as" switcher is the only header button labelled with a name.
+    const identity = () => dialog.querySelector('[role="button"][aria-label][aria-expanded]');
+    if (as && (await until(identity)).getAttribute('aria-label') !== as) {
+      // The switcher ignores clicks until LinkedIn has finished wiring up the composer,
+      // so keep pressing it (gently) until its menu opens.
+      let pressed = 0;
+      const option = await until(() => {
+        const radio = [...document.querySelectorAll('[popover] input[type="radio"]')]
+          .find((r) => r.closest('[componentkey]')?.querySelector('p')?.textContent.trim() === as);
+        if (!radio && identity().getAttribute('aria-expanded') !== 'true' && Date.now() - pressed > 500) {
+          pressed = Date.now();
+          identity().click();
+        }
+        return radio;
+      });
+      option.click();
+      await until(() => identity()?.getAttribute('aria-label') === as);
+    }
+    const editor = await until(() => dialog.querySelector('[componentkey="ShareBox_textEditor"][contenteditable="true"]'));
+    editor.focus();
+    // Replace whatever LinkedIn restored (a saved draft) with our text, line by line.
+    document.execCommand('selectAll');
+    document.execCommand('delete');
+    text.split('\n').forEach((line, i) => {
+      if (i) document.execCommand('insertParagraph');
+      if (line) document.execCommand('insertText', false, line);
+    });
+    return dialog;
   }
 
-  function syncComposer() {
-    const dialog = document.querySelector(COMPOSE_DIALOG);
-    if (dialog && composer.state === 'pending') {
-      composer = { state: 'open', since: Date.now() };
-      if (document.documentElement.hasAttribute('data-lt-inline')) composerSize.observe(dialog);
-    } else if (!dialog && (composer.state === 'open' || (composer.state === 'pending' && Date.now() - composer.since > 4000))) {
-      composer = { state: 'idle', since: 0 };
-      composerSize.disconnect();
-      document.documentElement.removeAttribute('data-lt-inline');
-      document.getElementById('lt-compose')?.style.removeProperty('min-height');
+  async function publish(text, as) {
+    document.documentElement.setAttribute('data-lt-ghost', '');
+    try {
+      const dialog = await fillComposer(text, as);
+      const post = await until(() => {
+        const buttons = [...dialog.querySelectorAll('button')];
+        const button = buttons.find((b) => b.textContent.trim() === 'Post') ?? buttons.at(-1);
+        return !button.disabled && button;
+      });
+      post.click();
+      await until(() => !dialog.isConnected || !dialog.open, 20000);
+      return true;
+    } catch (error) {
+      console.warn('[LinkedIn Plus]', error);
+      return false;
+    } finally {
+      document.documentElement.removeAttribute('data-lt-ghost');
     }
   }
 
-  function renderCompose({ name }) {
+  function renderCompose({ identities }) {
+    const text = h('textarea', { rows: 1, placeholder: 'Write a post…', 'aria-label': 'Post text' });
+    const select = h('select', { 'aria-label': 'Post as' }, identities.map((name) => h('option', { value: name }, name)));
+    const post = h('button', { type: 'button', class: 'lt-compose-post', 'data-action': 'post', disabled: '' }, 'Post');
+    const status = h('p', { class: 'lt-compose-status', role: 'status' });
     const root = h('section', { id: 'lt-compose', class: 'lt-card', 'aria-label': 'Create a post' },
-      h('button', { type: 'button', class: 'lt-compose-input', 'data-action': 'write' }, 'Write a post…'),
+      text,
       h('div', { class: 'lt-compose-bar' },
-        name && h('span', { class: 'lt-compose-as' }, 'Posting as ', h('strong', {}, name)),
+        identities.length > 0 ? h('label', { class: 'lt-compose-as' }, 'Posting as', select) : h('span', { class: 'lt-compose-as' }),
         h('button', { type: 'button', 'data-action': 'media' }, icon(ICONS.image), 'Photo or video'),
-        h('a', { href: 'https://www.linkedin.com/article/new/' }, icon(ICONS.article), 'Article')));
+        h('a', { href: 'https://www.linkedin.com/article/new/' }, icon(ICONS.article), 'Article'),
+        post),
+      status);
+
+    const refresh = () => { post.disabled = !text.value.trim() || root.hasAttribute('data-busy'); };
+    text.addEventListener('input', refresh);
+
+    // Hand the draft to LinkedIn's visible composer (popup, media, or if in-feed posting is off).
+    const openInLinkedIn = async (media) => {
+      try {
+        const dialog = await fillComposer(text.value, identities.length ? select.value : null);
+        text.value = '';
+        refresh();
+        if (media) (await until(() => dialog.querySelector('svg#image-outline-medium')?.closest('button'))).click();
+      } catch (error) {
+        console.warn('[LinkedIn Plus]', error);
+      }
+    };
+
+    const submit = async () => {
+      if (post.disabled) return;
+      root.setAttribute('data-busy', '');
+      post.textContent = 'Posting…';
+      status.textContent = '';
+      refresh();
+      const ok = await publish(text.value.trim(), identities.length ? select.value : null);
+      root.removeAttribute('data-busy');
+      post.textContent = 'Post';
+      if (ok) text.value = '';
+      else status.textContent = 'Couldn’t post in the background. Your post is open in LinkedIn’s composer.';
+      refresh();
+    };
+
+    text.addEventListener('focus', () => { if (!config().inlineComposer) { text.blur(); openInLinkedIn(false); } });
+    text.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit(); });
     root.addEventListener('click', (e) => {
       const action = e.target.closest('[data-action]')?.dataset.action;
-      if (action === 'write') openComposer();
-      // The composer's own Media button takes images and video; the sharebox's
-      // Photo and Video buttons each accept only one kind.
-      if (action === 'media') openComposer((dialog) => waitFor(() => dialog.querySelector('svg#image-outline-medium')?.closest('button'), (b) => b.click()));
+      if (action === 'post') submit();
+      if (action === 'media') openInLinkedIn(true);
     });
     return root;
   }
 
-  function placeCompose(name) {
+  function placeCompose(identities) {
     const sharebox = document.querySelector('[data-testid="mainFeed"] > :has(#draft-text-replaceable-component)');
     if (!sharebox) return document.getElementById('lt-compose')?.remove();
     let el = document.getElementById('lt-compose');
-    if (!el || signatures['lt-compose'] !== name) {
-      const next = renderCompose({ name });
+    const sig = JSON.stringify(identities);
+    if (!el || signatures['lt-compose'] !== sig) {
+      const next = renderCompose({ identities });
       if (el) {
-        next.style.minHeight = el.style.minHeight;
+        // Keep what was typed when the identity list changes under us.
+        next.querySelector('textarea').value = el.querySelector('textarea').value;
+        next.querySelector('textarea').dispatchEvent(new Event('input'));
         el.replaceWith(next);
       }
       el = next;
-      signatures['lt-compose'] = name;
+      signatures['lt-compose'] = sig;
     }
     if (sharebox.previousElementSibling !== el) sharebox.before(el);
   }
@@ -626,13 +689,14 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
 
   function update() {
     const identity = document.getElementById('feedIdentityModuleComponentRef');
+    const me = identity && readProfile(identity);
     if (identity) {
-      const profile = sync('lt-profile', readProfile(identity), renderProfile, identity);
+      const profile = sync('lt-profile', me, renderProfile, identity);
       const games = sync('lt-games', readGames(), renderGames, profile ?? identity);
       sync('lt-settings', { theme: themePreference() }, renderSettings, games ?? profile ?? identity);
     }
-    placeCompose(identity?.querySelector('a[aria-label] p')?.textContent.trim());
-    syncComposer();
+    // You and the pages you manage: the same list LinkedIn's "Post as" switcher offers.
+    placeCompose(me?.name ? [me.name, ...me.pages.map((p) => p.name)] : []);
     addFooterToMoreMenu();
   }
 
