@@ -9,6 +9,7 @@
   --lt-muted-fg: light-dark(rgb(0 0 0 / 0.6), rgb(255 255 255 / 0.6));
   --lt-border: light-dark(rgb(140 140 140 / 0.2), rgb(140 140 140 / 0.25));
   --lt-primary: light-dark(#0a66c2, #71b7fb);
+  --lt-premium: light-dark(#a86200, #e7a33e);
   --lt-radius: 12px;
   --lt-font: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
@@ -51,7 +52,40 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 /* The bar LinkedIn slides in once the top card scrolls away: our mini profile in the
    sidebar does its job (profile.ts). */
 [data-sdui-screen$=".profile.Profile"] [role="toolbar"] { display: none; }
-#lt-mini { margin: 0; }
+/* Someone else's profile: the mini profile replaces LinkedIn's top card. The card stays in the
+   page, unseen, for the mini profile's buttons to click (profile.ts), and at full width so
+   LinkedIn keeps its wide layout. Its menus and dialogs still show. */
+html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] [componentkey$="Topcard"] {
+  position: absolute !important; inset: 0 0 auto; visibility: hidden; pointer-events: none;
+  & :is([popover], dialog) { visibility: visible; pointer-events: auto; }
+}
+/* Contact info's values, blurred until clicked (profile.ts). */
+html[data-lt-blur-contacts] [data-sdui-screen$=".ProfileContactDetailsOverlay"] svg[id] + div > p:not(:first-child):not([data-lt-revealed]) {
+  filter: blur(5px); cursor: pointer; user-select: none;
+}
+#lt-mini { position: relative; margin: 0; }
+#lt-mini .lt-bell {
+  position: absolute; top: 8px; right: 8px; z-index: 1; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 9999px;
+  background: rgb(0 0 0 / 0.45); color: #fff; backdrop-filter: blur(6px); cursor: pointer;
+  &:hover { background: rgb(0 0 0 / 0.6); }
+  & svg { width: 15px; height: 15px; }
+}
+#lt-mini .lt-degree { padding: 0 7px; border-radius: 9999px; background: color-mix(in srgb, var(--lt-premium) 15%, transparent); color: var(--lt-premium); font-size: 12px; font-weight: 600; line-height: 20px; }
+#lt-mini .lt-influencer { display: grid; color: var(--lt-premium); }
+#lt-mini .lt-influencer svg { width: 16px; height: 16px; }
+#lt-mini .lt-pronouns { color: var(--lt-muted-fg); font-size: 13px; }
+#lt-mini .lt-contact {
+  padding: 0; border: 0; background: none; color: var(--lt-primary); font: inherit; font-weight: 600; cursor: pointer;
+  &:hover { text-decoration: underline; }
+}
+#lt-mini .lt-mini-mutual {
+  display: flex; align-items: center; gap: 8px; margin: -4px 16px 12px; color: var(--lt-muted-fg); font-size: 13px; line-height: 16px;
+  &:hover { background: none; }
+  &:hover > span:last-child { text-decoration: underline; }
+}
+#lt-mini .lt-faces { display: flex; flex: none; }
+#lt-mini .lt-faces img { width: 22px; height: 22px; border: 2px solid var(--lt-card); border-radius: 9999px; object-fit: cover; }
+#lt-mini .lt-faces img + img { margin-left: -8px; }
 #lt-mini .lt-mini-stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: -4px 16px 12px; color: var(--lt-muted-fg); }
 #lt-mini .lt-mini-stats strong { color: var(--lt-fg); font-weight: 600; }
 #lt-mini .lt-mini-stats a:hover { background: none; text-decoration: underline; }
@@ -94,7 +128,7 @@ html[data-lt-ghost] [popover]:popover-open { visibility: hidden !important; }
   translate: none !important;
   margin: 0 !important;
 }
-html[data-lt-hide-suggestions] [componentkey$="SuggestedForYou"] { display: none !important; }
+html[data-lt-hide-suggestions] :is([componentkey$="SuggestedForYou"], [componentkey*="ProfilePostConnectDrawer"]) { display: none !important; }
 /* Your dashboard moves to the sidebar. */
 [data-sdui-screen$=".profile.Profile"] #workspace section [data-testid="lazy-column"] section:has(a[href*="/analytics/search-appearances/"]):not(:has(section a[href*="/analytics/"])) { display: none; }
 
@@ -204,6 +238,7 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 :is(#lt-profile, #lt-mini) .lt-avatar:hover { background: none; }
 :is(#lt-profile, #lt-mini) .lt-avatar img { display: block; width: 64px; height: 64px; object-fit: cover; border-radius: 9999px; border: 3px solid var(--lt-card); background: var(--lt-card); }
 :is(#lt-profile, #lt-mini) .lt-body { display: grid; gap: 4px; padding: 8px 16px 12px; }
+:is(#lt-profile, #lt-mini) .lt-name-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
 :is(#lt-profile, #lt-mini) .lt-name { display: inline-flex; align-items: center; gap: 6px; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
 :is(#lt-profile, #lt-mini) .lt-name:hover { background: none; text-decoration: underline; }
 :is(#lt-profile, #lt-mini) .lt-name svg { width: 16px; height: 16px; flex: none; color: var(--lt-muted-fg); }

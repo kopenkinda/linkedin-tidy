@@ -166,6 +166,15 @@ const kind = (id: string) => {
 const isConnect = (id: string) => id.startsWith('person-plus');
 const isFollow = (id: string) => /^(plus|check)-/.test(id);
 
+// Smaller pieces of the top card, each found by its icon or link rather than its words.
+const TOP = '[componentkey$="Topcard"]';
+const contactLink = (page: Element) => page.querySelector<HTMLElement>(`${TOP} a[href*="/overlay/contact-info/"]`);
+const bellLink = (page: Element) => page.querySelector<HTMLElement>(`${TOP} a:has(svg[id^="bell-"])`);
+// "Anaïs, Nicolas and 117 other mutual connections", "Followed by Natalia and 11 others you
+// know": a people search with faces or a people icon. The plain "500+ connections" link
+// goes to the same search, without either.
+const MUTUAL = `${TOP} a[href*="/search/results/people/"]:has(img, svg)`;
+
 // The current companies and school next to the headline ("Stan + 2 more", "Universitat
 // Pompeu Fabra"), told apart from other figures by LinkedIn's placeholder logo. Clicking
 // one scrolls to Experience or Education.
@@ -182,6 +191,13 @@ interface Action {
 }
 
 export interface Mini extends Person {
+  /** "1st", "2nd", "3rd". */
+  degree: string;
+  pronouns: string;
+  influencer: boolean;
+  contact: string;
+  bell: string;
+  mutual?: { text: string; href: string; faces: string[] };
   stats: { value: string; label: string; href?: string }[];
   orgs: { label: string; name: string; logo?: string }[];
   links: { label: string; name: string; href: string }[];
@@ -193,7 +209,7 @@ function readMini(page: Element): Mini | null {
   if (!person) return null;
   // "409,476 followers", "500+ connections": the top card's lines that start with a number.
   // Some profiles put the label on a line of its own ("500+", "connections").
-  const stats = [...page.querySelectorAll('[componentkey$="Topcard"] p')].flatMap((p) => {
+  const stats = [...page.querySelectorAll(`${TOP} p:not(${MUTUAL} p)`)].flatMap((p) => {
     const m = text(p).match(/^(\d[\d\s.,]*\+?)(?:\s+(\S.*))?$/);
     const label = m?.[2] ?? text(p.nextElementSibling);
     return m?.[1] && label ? [{ value: m[1], label, href: p.closest('a')?.href }] : [];
@@ -223,7 +239,28 @@ function readMini(page: Element): Mini | null {
     });
   }
   actions.sort((a, b) => kind(a.icon).rank - kind(b.icon).rank);
-  return { ...person, stats, orgs, links, actions };
+  // The lines next to the name: pronouns ("He/Him") and the degree ("· 3rd"). The name's row
+  // is the info block's child that holds it.
+  const h2 = page.querySelector(`${TOP} h2`);
+  const info = contactLink(page)?.closest(`${TOP} :has(h2)`);
+  const row = [...(info?.children ?? [])].find((c) => h2 && c.contains(h2));
+  const beside = [...(row?.querySelectorAll(':scope > p') ?? [])].map(text);
+  const degree = beside.find((t) => t.startsWith('·'))?.replace(/^·\s*/, '') ?? '';
+  const pronouns = beside.find((t) => t && !t.startsWith('·')) ?? '';
+  const mutual = page.querySelector<HTMLAnchorElement>(MUTUAL);
+  return {
+    ...person,
+    degree,
+    pronouns,
+    influencer: !!page.querySelector(`${TOP} svg[id^="influencer-"]`),
+    contact: text(contactLink(page)),
+    bell: bellLink(page)?.getAttribute('aria-label') ?? '',
+    mutual: mutual ? { text: text(mutual), href: mutual.href, faces: [...mutual.querySelectorAll('img')].slice(0, 3).map((i) => i.src) } : undefined,
+    stats,
+    orgs,
+    links,
+    actions,
+  };
 }
 
 // Always at the top of the sidebar, with stand-ins for the top card's buttons that click the
@@ -233,9 +270,20 @@ function renderMini(m: Mini): HTMLElement {
   // Connect when there is one, otherwise the first labelled action (Message, Open to).
   const primary = m.actions.find((a) => isConnect(a.icon)) ?? m.actions.find((a) => !kind(a.icon).iconOnly);
   const card = h('section', { id: 'lt-mini', class: 'lt-card' },
-    personHead(m),
+    m.bell && h('button', { type: 'button', class: 'lt-bell', 'data-real': 'bell', title: m.bell, 'aria-label': m.bell }, icon(ICONS.bell)),
+    personHead(m, {
+      badges: [
+        m.influencer && h('span', { class: 'lt-influencer', title: 'LinkedIn Influencer' }, icon(ICONS.award)),
+        m.degree && h('span', { class: 'lt-degree' }, m.degree),
+        m.pronouns && h('span', { class: 'lt-pronouns' }, m.pronouns),
+      ],
+      meta: m.contact && h('button', { type: 'button', class: 'lt-contact', 'data-real': 'contact' }, m.contact),
+    }),
     m.stats.length > 0 && h('p', { class: 'lt-mini-stats' },
       m.stats.map((st) => h(st.href ? 'a' : 'span', { href: st.href }, h('strong', {}, st.value), ` ${st.label}`))),
+    m.mutual && h('a', { class: 'lt-mini-mutual', href: m.mutual.href },
+      m.mutual.faces.length > 0 && h('span', { class: 'lt-faces' }, m.mutual.faces.map((src) => h('img', { src, alt: '' }))),
+      h('span', {}, m.mutual.text)),
     m.orgs.length + m.links.length > 0 && h('div', { class: 'lt-mini-rows' },
       m.orgs.map((o, i) => h('button', { type: 'button', 'data-org': i },
         h('span', { class: 'lt-logo' }, o.logo ? h('img', { src: o.logo, alt: '' }) : icon(ICONS.building)),
@@ -254,11 +302,13 @@ function renderMini(m: Mini): HTMLElement {
     const target = e.target as Element;
     const fake = target.closest<HTMLElement>('[data-index]');
     const org = target.closest<HTMLElement>('[data-org]');
+    const real = target.closest<HTMLElement>('[data-real]')?.dataset.real;
     const page = document.querySelector(PROFILE);
     const action = fake && m.actions[Number(fake.dataset.index)];
     if (!page) return;
     if (fake && action) void press(page, action, fake);
     if (org) topOrgs(page)[Number(org.dataset.org)]?.click();
+    if (real) (real === 'bell' ? bellLink : contactLink)(page)?.click();
   });
   return card;
 }
@@ -299,16 +349,32 @@ async function press(page: Element, action: Action, fake: HTMLElement) {
   m.addEventListener('toggle', unpin);
 }
 
+// Contact info opens in LinkedIn's own dialog: an icon, a label ("Email") and the value for
+// each detail. With blurContacts on, the values are blurred (styles.css) and the first click on
+// one shows it instead of following its link.
+const CONTACT_VALUE = '[data-sdui-screen$=".ProfileContactDetailsOverlay"] svg[id] + div > p:not(:first-child)';
+document.addEventListener('click', (e) => {
+  const value = (e.target as Element).closest?.(CONTACT_VALUE);
+  if (!value || !config().blurContacts || value.hasAttribute('data-lt-revealed')) return;
+  e.preventDefault();
+  e.stopPropagation();
+  value.setAttribute('data-lt-revealed', '');
+}, true);
+
 export function updateProfile(onChange: () => void): void {
   const page = document.querySelector(PROFILE);
   const main = page?.querySelector('#workspace section');
   const aside = page?.querySelector('#workspace aside');
   document.documentElement.toggleAttribute('data-lt-hide-suggestions', config().hideProfileSuggestions);
+  document.documentElement.toggleAttribute('data-lt-blur-contacts', config().blurContacts);
   if (!page || !main || !aside?.firstElementChild) return;
   rerender = onChange;
   void probeMenu(page);
   // After LinkedIn's (hidden) content.
   const mini = sync('lt-mini', readMini(page), renderMini, aside.firstElementChild);
+  // On someone else's profile the mini profile stands in for LinkedIn's top card (styles.css).
+  // Yours keeps it: that's where you edit your intro, photo and cover.
+  document.documentElement.toggleAttribute('data-lt-mini-only', !!mini && !isOwn(page));
   const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, mini ?? aside.firstElementChild);
   sync('lt-settings', true, () => renderSettings(onChange), dashboard ?? mini ?? aside.firstElementChild);
   refreshSettings();

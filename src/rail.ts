@@ -75,17 +75,19 @@ function row(href: string, glyph: Child, label: string, value?: string) {
 
 export type Person = Pick<Profile, 'href' | 'name' | 'headline' | 'location' | 'avatar' | 'cover' | 'verified' | 'company'>;
 
-/** Cover, photo, name, headline and location: the top of our profile cards. */
-export function personHead(p: Person): HTMLElement[] {
+/** Cover, photo, name, headline and location: the top of our profile cards. `badges` go after
+ * the name, `meta` after the location. */
+export function personHead(p: Person, extra: { badges?: Child; meta?: Child } = {}): HTMLElement[] {
   return [
     h('a', { class: 'lt-cover', href: p.href, tabindex: '-1', 'aria-hidden': 'true', style: p.cover && `background-image:url("${p.cover}")` }),
     h('a', { class: 'lt-avatar', href: p.href, tabindex: '-1', 'aria-hidden': 'true' }, p.avatar && h('img', { src: p.avatar, alt: '' })),
     h('div', { class: 'lt-body' },
-      h('a', { class: 'lt-name', href: p.href }, p.name, p.verified && icon(ICONS.verified)),
+      h('div', { class: 'lt-name-row' }, h('a', { class: 'lt-name', href: p.href }, p.name, p.verified && icon(ICONS.verified)), extra.badges),
       h('p', { class: 'lt-headline' }, p.headline),
       h('p', { class: 'lt-meta' },
         p.location && h('span', {}, p.location),
-        p.company && h('span', { class: 'lt-company' }, p.company.logo && h('img', { src: p.company.logo, alt: '' }), p.company.name))),
+        p.company && h('span', { class: 'lt-company' }, p.company.logo && h('img', { src: p.company.logo, alt: '' }), p.company.name),
+        extra.meta)),
   ];
 }
 
