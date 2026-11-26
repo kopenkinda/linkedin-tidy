@@ -480,6 +480,23 @@ header button:has(svg#bars-outline-medium) svg#bars-outline-medium,
 header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 #global-nav .global-nav__more .global-nav__primary-link-text svg { display: none; }
 
+/* Messaging: one column. The sidebar (Page inboxes, an ad, the footer) goes; the inboxes are
+   links in the filter row instead (messaging.ts). The floating Messaging bar repeats the page. */
+.scaffold-layout__row:has(.msg-conversations-container) {
+  grid-template-columns: 1fr !important;
+  grid-template-areas: "main" !important;
+  & > .scaffold-layout__aside { display: none; }
+}
+body:has(.msg-conversations-container) #msg-overlay { display: none; }
+.msg-conversations-container__title-row:has(#lt-inboxes) { justify-content: space-between; gap: 8px; }
+#lt-inboxes {
+  display: flex; flex: none; align-items: center; gap: 6px; padding-right: 12px; font-family: var(--lt-font); font-size: 13px;
+  & a { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 4px; border: 1px solid var(--lt-border); border-radius: 9999px; color: var(--lt-fg); font-weight: 500; text-decoration: none; }
+  & a:hover { background: var(--lt-muted); }
+  & img, & svg { width: 20px; height: 20px; border-radius: 9999px; object-fit: cover; }
+  & svg { padding: 3px; box-sizing: border-box; color: var(--lt-muted-fg); }
+}
+
 /* Quiet Home (setting): no notification dot on Home. React: an empty span next to the
    house icon; Ember: the usual badge. */
 html[data-lt-quiet-home] header nav :is(a, button):has(svg[id^="house-"]) span:has(> svg) > :not(svg),

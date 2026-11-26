@@ -12,6 +12,7 @@ import { installMutedReveal, markPosts } from './feed';
 import { extendMoreMenu, matchPageWidth } from './nav';
 import { updateSidebar } from './sidebar';
 import { markJobs } from './jobs';
+import { updateMessaging } from './messaging';
 import { installPickerGuard } from './picker';
 import { updateProfile } from './profile';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
@@ -42,9 +43,14 @@ function update() {
   matchPageWidth();
   markPosts();
   markJobs();
+  updateMessaging();
 }
 
-if (!window.__linkedinTidy) {
+// Coming from a React page, LinkedIn shows Ember pages (messaging, ...) in a full-window
+// iframe at /preload/ over the old page, so run there too; not in other frames (ads, embeds).
+const ourFrame = window === window.top || location.pathname.startsWith('/preload/');
+
+if (ourFrame && !window.__linkedinTidy) {
   window.__linkedinTidy = true;
 
   addStyle('lt-style', css);

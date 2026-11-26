@@ -11,7 +11,6 @@ const banner = `// ==UserScript==
 // @description  Two-column, shadcn-styled LinkedIn without the clutter.
 // @match        https://www.linkedin.com/*
 // @run-at       document-start
-// @noframes
 // @grant        none
 // ==/UserScript==`;
 
