@@ -12,6 +12,12 @@
   --lt-font: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+/* The theme toggle sets body[data-color-scheme]. A page that loaded dark also has a hashed
+   dark-scheme class on <body> that wins over the attribute, so Light never applied until a
+   reload. Let the attribute decide (unlayered, so it beats LinkedIn's layers). */
+body[data-color-scheme="light"] { color-scheme: light; }
+body[data-color-scheme="dark"] { color-scheme: dark; }
+
 /* Ember UI tokens. The chat overlay sits in a shadow root on #interop-outlet;
    declarations on the host from outside win over its internal :host rules. */
 html, #interop-outlet {

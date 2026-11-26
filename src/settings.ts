@@ -36,12 +36,12 @@ function setTheme(preference: Theme) {
   applyTheme(preference);
 }
 
-// LinkedIn follows OS changes itself when the page loaded in system mode; this covers
-// switching to system on an already-open page.
+// LinkedIn's ThemeProvider follows OS changes when the page loaded in system mode, and
+// then sets the body attribute itself, which would undo an explicit choice made since.
+// Re-apply ours after its handler has run; for system this also covers switching to
+// system on an already-open page.
 export function followOsTheme(): void {
-  osDark.addEventListener('change', () => {
-    if (themePreference() === 'system') applyTheme('system');
-  });
+  osDark.addEventListener('change', () => setTimeout(() => applyTheme(themePreference())));
 }
 
 function openConfig() {
@@ -86,7 +86,9 @@ export function renderSettings({ theme }: { theme: Theme }, onChange: () => void
     const target = e.target as Element;
     if (target.closest('[data-action="config"]')) return openConfig();
     const value = target.closest<HTMLElement>('[data-theme]')?.dataset.theme as Theme | undefined;
-    if (value && value !== themePreference()) {
+    // No "already selected" shortcut: the cookie can match while the page shows something
+    // else (another tab changed it), and re-applying is harmless.
+    if (value) {
       setTheme(value);
       onChange();
     }
