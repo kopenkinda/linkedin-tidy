@@ -121,7 +121,7 @@ const topOrgs = (page: Element) =>
 
 export interface Mini extends Person {
   stats: { value: string; label: string; href?: string }[];
-  orgs: { name: string; logo?: string }[];
+  orgs: { label: string; name: string; logo?: string }[];
   actions: { label: string; icon: string }[];
 }
 
@@ -135,7 +135,13 @@ function readMini(page: Element): Mini | null {
     const label = m?.[2] ?? text(p.nextElementSibling);
     return m?.[1] && label ? [{ value: m[1], label, href: p.closest('a')?.href }] : [];
   });
-  const orgs = topOrgs(page).map((el) => ({ name: text(el), logo: el.querySelector('img')?.src }));
+  // Labelled with the heading of the section a click scrolls to, in the interface's language
+  // ("Education", not "Education (2)").
+  const orgs = topOrgs(page).map((el) => {
+    const section = el.querySelector('figure svg[id^="school-"]') ? 'Education' : 'Experience';
+    const heading = text(page.querySelector(`[componentkey$="${section}TopLevelSection"] h2`)).replace(/\s*\(\d+\)$/, '');
+    return { label: heading || section, name: text(el), logo: el.querySelector('img')?.src };
+  });
   const actions = topActions(page).map((el) => ({
     label: text(el) || (el.getAttribute('aria-label') ?? ''),
     icon: el.querySelector('svg[id]')?.id ?? '',
@@ -152,7 +158,9 @@ function renderMini(m: Mini): HTMLElement {
     m.stats.length > 0 && h('p', { class: 'lt-mini-stats' },
       m.stats.map((st) => h(st.href ? 'a' : 'span', { href: st.href }, h('strong', {}, st.value), ` ${st.label}`))),
     m.orgs.length > 0 && h('div', { class: 'lt-mini-orgs' },
-      m.orgs.map((o, i) => h('button', { type: 'button', 'data-org': i }, o.logo && h('img', { src: o.logo, alt: '' }), h('span', {}, o.name)))),
+      m.orgs.map((o, i) => h('button', { type: 'button', 'data-org': i },
+        h('span', { class: 'lt-logo' }, o.logo && h('img', { src: o.logo, alt: '' })),
+        h('span', { class: 'lt-stack' }, h('small', {}, o.label), h('span', {}, o.name))))),
     m.actions.length > 0 && h('div', { class: 'lt-mini-actions' },
       m.actions.map((a, i) => {
         const svg = actionIcon(a.icon);
