@@ -2,8 +2,8 @@ import { h, icon, sync, type Icon } from './dom';
 import { ICONS } from './icons';
 import { refreshSettings, renderSettings } from './settings';
 
-// My Network (Grow, Catch up, invitations) and Jobs: LinkedIn's sidebar becomes ours, like
-// the profile's. Its lists of links are redrawn as one of our cards, then the quick settings;
+// My Network (Grow, Catch up, invitations), Jobs and Notifications: LinkedIn's sidebar becomes
+// ours, like the profile's. Its links are redrawn as one of our cards, then the quick settings;
 // the rest (profile card, ad, footer links) goes, as do Premium upsells (styles.css).
 
 interface Row {
@@ -22,6 +22,8 @@ interface Page {
   sidebar: string;
   /** Rows of ours, at the top of the first group. */
   first?: Row[];
+  /** Links outside a list worth a row of their own. */
+  links?: string;
   /** Where to keep the groups for pages of the same kind that lack the list. */
   store?: string;
 }
@@ -36,6 +38,12 @@ const PAGES: Page[] = [
     store: 'lt-network-groups',
   },
   { sidebar: '[data-sdui-screen$=".jobs.JobsHome"] #workspace > div > div > aside' },
+  // Notifications: a profile card and "Manage notifications" on the left (the right rail's ad
+  // and footer go). Its screen marker sits inside the main column too.
+  {
+    sidebar: '#workspace > div > div:has(> section [data-sdui-screen*=".notifications."]) > aside:first-child',
+    links: 'a[href*="/mypreferences/"]',
+  },
 ];
 
 const ROW_ICONS: [path: string, svg: Icon][] = [
@@ -49,6 +57,7 @@ const ROW_ICONS: [path: string, svg: Icon][] = [
   ['/jobs/preferences/', ICONS.sliders],
   ['/jobs-tracker/', ICONS.bookmark],
   ['/job-posting', ICONS.pen],
+  ['/mypreferences/', ICONS.settings],
 ];
 
 const text = (el: Element | null | undefined) => el?.textContent?.trim() ?? '';
@@ -56,14 +65,17 @@ const text = (el: Element | null | undefined) => el?.textContent?.trim() ?? '';
 // Each link is an icon, a label and sometimes a count ("Connections", "440"). Links with
 // LinkedIn's Premium badge for an icon are upsells.
 function readGroups(own: Element, page: Page): Group[] | null {
-  const groups = [...own.querySelectorAll('nav')].map((nav): Group => ({
+  let groups = [...own.querySelectorAll('nav')].map((nav): Group => ({
     title: text(nav.parentElement?.querySelector(':scope > p')),
     rows: [...nav.querySelectorAll<HTMLAnchorElement>('a[href]:not(:has(svg[id*="premium"]))')].map((a) => ({
       href: a.href,
       label: text(a.querySelector(':scope > :nth-child(2)')),
       count: text(a.querySelector(':scope > :nth-child(3)')),
     })),
-  })).filter((g) => g.rows.length);
+  }));
+  const links = page.links ? [...own.querySelectorAll<HTMLAnchorElement>(page.links)] : [];
+  groups.push({ title: '', rows: links.map((a) => ({ href: a.href, label: text(a), count: '' })) });
+  groups = groups.filter((g) => g.rows.length);
   if (!page.store) return groups.length ? groups : null;
   if (groups.length) {
     localStorage.setItem(page.store, JSON.stringify(groups));

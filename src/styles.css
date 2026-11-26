@@ -40,15 +40,16 @@ html.theme--mercado-dark { color-scheme: dark; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > section { grid-column: 2; }
 #workspace div:has(> section [componentkey="feed-tab-host_tab-bar"]) > aside:last-child { display: none !important; }
 
-/* Profile, My Network and Jobs: the same two columns, with LinkedIn's sidebar (the profile's right
+/* Profile, My Network, Jobs and Notifications: the same two columns, with LinkedIn's sidebar (the profile's right
    rail) on the left. Its own content is hidden: what's worth keeping is in our cards
    (profile.ts, sidebar.ts), and the footer's links are in Help & legal. */
-:is(:is([data-sdui-screen$=".profile.Profile"], [data-sdui-screen$=".jobs.JobsHome"]) #workspace > div > div, #workspace > div > div:has(> section [data-sdui-screen*=".mynetwork."])):has(> section):has(> aside) {
+:is(:is([data-sdui-screen$=".profile.Profile"], [data-sdui-screen$=".jobs.JobsHome"]) #workspace > div > div, #workspace > div > div:has(> section :is([data-sdui-screen*=".mynetwork."], [data-sdui-screen*=".notifications."]))):has(> section):has(> aside) {
   grid-template-columns: 25fr 75fr;
   column-gap: 24px;
   & > aside { grid-column: 1; grid-row: 1; display: grid; align-content: start; gap: 8px; position: sticky; top: 24px; align-self: start; }
   & > section { grid-column: 2; grid-row: 1; }
-  & > footer, & > aside > div:first-child { display: none !important; }
+  /* A second sidebar on the right (Notifications: an ad and the footer) goes too. */
+  & > footer, & > aside > div:first-child, & > aside:first-child ~ aside { display: none !important; }
   & :is(#lt-dashboard, #lt-sidebar) { margin: 0; }
 }
 /* My Network: its Premium upsells ("People who viewed your profile", "People interested in
