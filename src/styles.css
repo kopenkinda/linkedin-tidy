@@ -59,7 +59,42 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 
 /* Feed junk */
 [data-testid="mainFeed"] > :has([componentkey^="Launchpad"]) { display: none !important; }
-:is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"] { border-radius: var(--lt-radius); }
+
+/* Feed posts. A post is a fixed frame: context line ("X likes this"), author header, text,
+   one media block, the action bar, then a comments section (LinkedIn previews one comment
+   when the context is "X commented"). */
+:is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"] {
+  border-radius: var(--lt-radius);
+
+  /* Context line: one muted line, no divider under it. */
+  & hr[role="presentation"] { display: none; }
+  & div:has(+ hr[role="presentation"]) {
+    padding-bottom: 0;
+    & figure { width: 20px; height: 20px; }
+    & p { font-size: 12px; line-height: 16px; color: var(--lt-muted-fg); }
+  }
+
+  /* Author header: drop the connection degree ("• 3rd+", "• Following") but keep the
+     verified and premium badges that share its span, and the creator links. */
+  & div[aria-label] > div + div p > span { font-size: 0; }
+  & p:has(> a:is([aria-label="Visit my website"], [aria-label="View my newsletter"])) { display: none; }
+
+  /* Media: images and videos sit in nested inline aspect-ratio boxes. Cap the outer one
+     and letterbox inside it, so tall screenshots and portrait shots don't fill the screen. */
+  & div[style*="aspect-ratio"]:has(> :is(a, div, figure)[style*="aspect-ratio"], video) {
+    max-height: 500px;
+    border-radius: 8px;
+    background: var(--lt-muted);
+  }
+  & [style*="aspect-ratio"] [style*="aspect-ratio"] { aspect-ratio: auto !important; height: 100%; }
+  & [style*="aspect-ratio"] :is(img, video) { max-height: 500px; object-fit: contain; }
+
+  /* Comments under a post read as replies to it. */
+  & [componentkey^="replaceableComment_"] { margin-left: 16px; padding-left: 12px; border-left: 2px solid var(--lt-border); }
+}
+
+/* Promoted posts, tagged by feed.ts; the setting toggles the html attribute. */
+html[data-lt-hide-ads] [data-lt-ad="true"] { display: none; }
 
 /* Cards we render */
 .lt-card {

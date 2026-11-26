@@ -7,6 +7,7 @@
 // - Ember (messaging page, floating chat): readable classes and named design tokens.
 import { enhanceComposer, installComposerDock, placeCompose } from './composer';
 import { addStyle, sync } from './dom';
+import { markAds } from './feed';
 import { addFooterToMoreMenu } from './nav';
 import { installPickerGuard } from './picker';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
@@ -30,6 +31,7 @@ function update() {
   placeCompose();
   enhanceComposer();
   addFooterToMoreMenu();
+  markAds();
 }
 
 if (!window.__linkedinTidy) {

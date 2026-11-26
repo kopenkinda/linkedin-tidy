@@ -44,7 +44,7 @@ export function followOsTheme(): void {
   osDark.addEventListener('change', () => setTimeout(() => applyTheme(themePreference())));
 }
 
-function openConfig() {
+function openConfig(onChange: () => void) {
   let dialog = document.getElementById('lt-config') as HTMLDialogElement | null;
   if (!dialog) {
     const current = config();
@@ -59,6 +59,7 @@ function openConfig() {
     created.addEventListener('change', (e) => {
       const input = e.target as HTMLInputElement;
       setConfig(input.dataset.key as ConfigKey, input.checked);
+      onChange();
     });
     // Close on the X or a click on the backdrop (the dialog element itself).
     created.addEventListener('click', (e) => {
@@ -70,7 +71,7 @@ function openConfig() {
   dialog.showModal();
 }
 
-/** `onChange` re-renders the rail after the theme changes. */
+/** `onChange` re-runs the page update so a theme or config change applies right away. */
 export function renderSettings({ theme }: { theme: Theme }, onChange: () => void): HTMLElement {
   const option = (value: Theme, label: string, svg: Icon) =>
     h('button', { type: 'button', role: 'radio', 'aria-checked': String(theme === value), 'aria-label': label, title: label, 'data-theme': value }, icon(svg));
@@ -84,7 +85,7 @@ export function renderSettings({ theme }: { theme: Theme }, onChange: () => void
     h('button', { type: 'button', class: 'lt-plus', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)));
   root.addEventListener('click', (e) => {
     const target = e.target as Element;
-    if (target.closest('[data-action="config"]')) return openConfig();
+    if (target.closest('[data-action="config"]')) return openConfig(onChange);
     const value = target.closest<HTMLElement>('[data-theme]')?.dataset.theme as Theme | undefined;
     // No "already selected" shortcut: the cookie can match while the page shows something
     // else (another tab changed it), and re-applying is harmless.

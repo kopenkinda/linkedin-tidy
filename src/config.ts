@@ -4,6 +4,7 @@ import { h } from './dom';
 // applies without a reload.
 export const OPTIONS = [
   { key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
+  { key: 'hideAds', default: true, label: 'Hide promoted posts', hint: 'Ads in the feed that look like regular posts.' },
   { key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
 ] as const;
 
