@@ -25,7 +25,7 @@ function update() {
   const me = identity && readProfile(identity);
   if (identity) {
     const profile = sync('lt-profile', me, renderProfile, identity);
-    const games = sync('lt-games', readGames(), (g) => renderGames(g, update), profile ?? identity);
+    const games = sync('lt-games', readGames(), renderGames, profile ?? identity);
     sync('lt-settings', true, () => renderSettings(update), games ?? profile ?? identity);
     refreshSettings();
   }
