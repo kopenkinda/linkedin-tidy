@@ -159,25 +159,33 @@ header:has(nav a[href*="/jobs/"]) { position: relative; z-index: 2; }
 /* Size: LinkedIn pins it to 800×640 (aspect-ratio 1.25 on a wrapper); let content decide. */
 dialog:has([data-sdui-screen$="ShareCompose"]) { height: fit-content; max-height: calc(100dvh - 64px); }
 [data-sdui-screen$="ShareCompose"] [style*="aspect-ratio"] { aspect-ratio: auto !important; }
-[data-sdui-screen$="ShareCompose"] [data-testid="lazy-column"] { min-height: 96px; }
-/* Avatar next to the "post as" switcher (not media inside the post). */
-[data-sdui-screen$="ShareCompose"] figure:not(#ShareBoxpreviewCard figure, #ShareBoxlinkPreview figure, [role="textbox"] figure),
-[data-sdui-screen$="ShareCompose"] figure:not(#ShareBoxpreviewCard figure, #ShareBoxlinkPreview figure, [role="textbox"] figure) :is(img, svg) { width: 40px; height: 40px; }
-/* Visibility, comments and collaborators: select-style triggers. The identity switcher is a
-   borderless one. LinkedIn's filled caret becomes a chevron. */
-[data-sdui-screen$="ShareCompose"] [role="button"]:is([aria-expanded], :has(svg#venn-diagram-outline-small)) > div:last-child {
-  box-sizing: border-box;
-  height: 32px;
-  gap: 6px;
-  padding: 0 8px 0 10px;
-  border: 1px solid var(--lt-border);
-  border-radius: 8px;
-  background: transparent;
-}
-[data-sdui-screen$="ShareCompose"] [role="button"][aria-label][aria-expanded] > div:last-child { border-color: transparent; padding-left: 8px; }
-[data-sdui-screen$="ShareCompose"] [role="button"]:hover > div:last-child { background: var(--lt-muted); }
-[data-sdui-screen$="ShareCompose"] svg#caret-down-fill-small { display: none; }
-[data-sdui-screen$="ShareCompose"] [role="button"][aria-expanded] > div:last-child::after {
+[data-sdui-screen$="ShareCompose"] [data-testid="lazy-column"] { min-height: 72px !important; } /* inline 27.2rem */
+/* Layout (parts tagged by composer.ts): identity, toolbar, editor, then a footer with the
+   post's settings on the left and Schedule/Post on the right. */
+dialog:has([data-sdui-screen$="ShareCompose"]) { overflow: hidden; }
+dialog:has([data-sdui-screen$="ShareCompose"]):focus-visible,
+[popover]:has(input[type="radio"]):focus-visible { outline: none; }
+[data-lt-c="avatar"] { zoom: 0.625; } /* 64px -> 40px, keeps a group's logo badge in place */
+[data-lt-c="flatten"] { display: contents !important; }
+[data-lt-c="toolbar"] { order: -1; padding-inline: 16px; border-bottom: 1px solid var(--lt-border); }
+[data-lt-c="main"] { position: relative; }
+/* The header is sticky, which would make it the chips' containing block. */
+[data-lt-c="main"] > :has([data-lt-c="chips"]) { position: static !important; }
+[data-lt-c="footer"] { box-sizing: border-box; min-height: 56px; }
+[data-lt-c="chips"] { position: absolute; left: 16px; bottom: 0; height: 56px; display: flex; align-items: center; gap: 2px; }
+/* Post settings as plain clickable text. Collaborators only when LinkedIn allows them
+   (visibility "Anyone"); otherwise it marks the button aria-disabled. */
+[data-lt-c="chips"] [role="button"] > div:last-child { box-sizing: border-box; height: 32px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--lt-muted-fg); }
+[data-lt-c="chips"] [role="button"]:hover > div:last-child { background: var(--lt-muted); color: var(--lt-fg); }
+[data-lt-c="chips"] [role="button"] :is(svg, p) { color: inherit; }
+[data-lt-c="chips"] [role="button"] p { font-weight: 500; }
+[data-lt-c="chips"] [role="button"] svg:not(#venn-diagram-outline-small) { display: none; }
+[data-lt-c="chips"] [role="button"][aria-disabled="true"] { display: none; }
+/* The "post as" switcher: a borderless dropdown with a chevron. */
+[data-sdui-screen$="ShareCompose"] [role="button"][aria-label][aria-expanded] > div:last-child { box-sizing: border-box; height: 32px; gap: 6px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; }
+[data-sdui-screen$="ShareCompose"] [role="button"][aria-label][aria-expanded]:hover > div:last-child { background: var(--lt-muted); }
+[data-sdui-screen$="ShareCompose"] [role="button"][aria-label][aria-expanded] svg#caret-down-fill-small { display: none; }
+[data-sdui-screen$="ShareCompose"] [role="button"][aria-label][aria-expanded] > div:last-child::after {
   content: "";
   flex: none;
   width: 16px;

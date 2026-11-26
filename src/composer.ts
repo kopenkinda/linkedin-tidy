@@ -98,3 +98,95 @@ export function placeCompose(): void {
     el.style.removeProperty('min-height');
   }
 }
+
+// --- Composer layout and labels -----------------------------------------------------
+//
+// LinkedIn's composer markup has no stable classes, so we find its parts from a few
+// stable markers (roles, icon ids, test ids) and tag them with data-lt-c; styles.css
+// arranges the tagged parts: identity on top, the formatting toolbar, the editor, then a
+// footer with the post's settings (visibility, comments, collaborators) next to Post.
+// We only add attributes and rewrite label text in place, never move LinkedIn's nodes, so
+// React keeps working. If a marker is missing, that part simply stays as LinkedIn drew it.
+
+function tag(el: Element | null | undefined, part: string) {
+  if (el && el.getAttribute('data-lt-c') !== part) el.setAttribute('data-lt-c', part);
+}
+
+function tagParts(screen: Element) {
+  const identity = screen.querySelector('[role="button"][aria-label][aria-expanded]');
+  const header = identity?.closest('div:has(figure)');
+  tag(header?.firstElementChild, 'avatar');
+
+  tag(screen.querySelector('[role="button"][aria-labelledby][aria-expanded]')?.parentElement, 'chips');
+
+  // Editor column -> its grid -> the body column that also holds the toolbar and footer.
+  const editorGrid = screen.querySelector('[data-testid="lazy-column"]')?.parentElement;
+  const body = editorGrid?.parentElement;
+  const bottom = editorGrid?.nextElementSibling;
+  const rows = bottom?.firstElementChild;
+  if (!body || !bottom || !rows) return;
+  tag(body, 'body');
+  tag(body.parentElement?.parentElement, 'main');
+  // Flatten the bottom wrappers so the toolbar becomes a sibling of the editor and can
+  // be ordered above it.
+  tag(bottom, 'flatten');
+  tag(rows, 'flatten');
+  for (const row of rows.children) {
+    if (row.querySelector('svg#emoji-outline-medium')) tag(row, 'toolbar');
+  }
+  tag(rows.lastElementChild, 'footer');
+}
+
+const labelOf = (chip: Element) => document.getElementById(chip.getAttribute('aria-labelledby') ?? '')?.textContent?.trim() ?? '';
+
+function visibilityLabel(screen: Element, label: string) {
+  // LinkedIn's own label keeps saying "Post to Anyone" after picking a group; the group's
+  // logo appearing next to your avatar is the reliable sign.
+  if ((screen.querySelector('[data-lt-c="avatar"]')?.querySelectorAll('figure').length ?? 0) > 1) return 'Visibility: Group';
+  const value = label.replace(/^Post to\s+/i, '');
+  return `Visibility: ${value === 'Connections only' ? 'Connections' : value}`;
+}
+
+const COMMENTS: Record<string, string> = { Anyone: 'On', 'Connections only': 'Connections', Off: 'Off', 'No one': 'Off' };
+
+function commentsLabel(label: string) {
+  const value = label.replace(/^Comments:\s*/i, '');
+  return `Comments: ${COMMENTS[value] ?? value}`;
+}
+
+function setLabel(chip: Element, text: string) {
+  const node = chip.querySelector(':scope > div:last-child p span')?.firstChild;
+  // Change the existing text node in place: React keeps its reference and simply
+  // overwrites it on its next update, which our observer then maps again.
+  if (node?.nodeType === Node.TEXT_NODE && node.nodeValue !== text) node.nodeValue = text;
+}
+
+function relabel(screen: Element) {
+  const [visibility, comments] = screen.querySelectorAll('[role="button"][aria-labelledby][aria-expanded]');
+  if (visibility) setLabel(visibility, visibilityLabel(screen, labelOf(visibility)));
+  if (comments) setLabel(comments, commentsLabel(labelOf(comments)));
+}
+
+const watched = new WeakSet<Element>();
+
+export function enhanceComposer(): void {
+  const screen = document.querySelector(`dialog[open] ${COMPOSE}`);
+  if (!screen) return;
+  const apply = () => {
+    tagParts(screen);
+    relabel(screen);
+  };
+  apply();
+  if (watched.has(screen)) return;
+  watched.add(screen);
+  // Label changes are text-only (characterData), which the page-wide observer ignores.
+  let queued = false;
+  new MutationObserver(() => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      apply();
+    });
+  }).observe(screen, { subtree: true, childList: true, characterData: true });
+}

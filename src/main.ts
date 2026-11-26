@@ -5,7 +5,7 @@
 //   named `componentkey`s, `data-testid`s, aria-labels and hrefs, never classes.
 //   `data-view-name` looks useful but is behind a feature flag and often absent.
 // - Ember (messaging page, floating chat): readable classes and named design tokens.
-import { installComposerDock, placeCompose } from './composer';
+import { enhanceComposer, installComposerDock, placeCompose } from './composer';
 import { addStyle, sync } from './dom';
 import { addFooterToMoreMenu } from './nav';
 import { applyPalette } from './palette';
@@ -29,6 +29,7 @@ function update() {
     sync('lt-settings', { theme: themePreference() }, (data) => renderSettings(data, update), games ?? profile ?? identity);
   }
   placeCompose();
+  enhanceComposer();
   addFooterToMoreMenu();
 }
 
