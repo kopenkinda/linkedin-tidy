@@ -12,6 +12,7 @@ export type PageId = (typeof PAGES)[number]['id'];
 
 export const OPTIONS = [
   { page: 'general', key: 'quietHome', default: true, label: 'Quiet Home', hint: 'No notification dot on Home in the header.' },
+  { page: 'general', key: 'hideMessagingOverlay', default: false, label: 'Hide the messaging overlay', hint: 'The chat bar in the corner of every page. Messages stay on the Messaging page.' },
   { page: 'feed', key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
   { page: 'feed', key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
   { page: 'feed', key: 'hideAds', default: true, label: 'Hide promoted posts', hint: 'Ads in the feed that look like regular posts.' },

@@ -35,6 +35,7 @@ function update() {
     refreshSettings();
   }
   document.documentElement.toggleAttribute('data-lt-quiet-home', config().quietHome);
+  document.documentElement.toggleAttribute('data-lt-hide-msg-overlay', config().hideMessagingOverlay);
   updateProfile(update);
   updateSidebar(update);
   placeCompose();

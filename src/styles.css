@@ -490,7 +490,7 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
   grid-template-areas: "main" !important;
   & > .scaffold-layout__aside { display: none; }
 }
-body:has(.msg__list-detail) #msg-overlay { display: none; }
+body:has(.msg__list-detail) #msg-overlay, html[data-lt-hide-msg-overlay] #msg-overlay { display: none; }
 html[data-lt-nav-in-flow] .authentication-outlet { padding-top: 0 !important; }
 .msg-conversations-container__title-row:has(#lt-inboxes) { justify-content: space-between; gap: 8px; }
 /* Ember's own colour tokens follow its theme; ours (light-dark()) only follow color-scheme,
