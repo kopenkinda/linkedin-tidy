@@ -170,13 +170,13 @@ const isFollow = (id: string) => /^(plus|check)-/.test(id);
 const TOP = '[componentkey$="Topcard"]';
 const contactLink = (page: Element) => page.querySelector<HTMLElement>(`${TOP} a[href*="/overlay/contact-info/"]`);
 const bellLink = (page: Element) => page.querySelector<HTMLElement>(`${TOP} a:has(svg[id^="bell-"])`);
-// "Anaïs, Nicolas and 117 other mutual connections", "Followed by Natalia and 11 others you
-// know": a people search with faces or a people icon. The plain "500+ connections" link
+// "Alex, Sam and 117 other mutual connections", "Followed by Robin and 11 others you know":
+// a people search with faces or a people icon. The plain "500+ connections" link
 // goes to the same search, without either.
 const MUTUAL = `${TOP} a[href*="/search/results/people/"]:has(img, svg)`;
 
-// The current companies and school next to the headline ("Stan + 2 more", "Universitat
-// Pompeu Fabra"), told apart from other figures by LinkedIn's placeholder logo. Clicking
+// The current companies and school next to the headline ("Acme + 2 more", "Example
+// University"), told apart from other figures by LinkedIn's placeholder logo. Clicking
 // one scrolls to Experience or Education.
 const topOrgs = (page: Element) =>
   [...page.querySelectorAll<HTMLElement>('[componentkey$="Topcard"] [role="button"]:has(figure svg:is([id^="company-"], [id^="school-"]))')]
