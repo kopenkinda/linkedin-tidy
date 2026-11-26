@@ -90,10 +90,29 @@ function readPerson(page: Element): Person | null {
   };
 }
 
-// Shown once the top card scrolls away (styles.css), in place of LinkedIn's sticky bar,
-// whose action buttons are moved onto the empty actions row.
+// Always at the top of the sidebar. LinkedIn's sticky bar (shown once the top card scrolls
+// away) is hidden, and its action buttons are moved onto the empty actions row (styles.css):
+// that bar sits outside the page's scroll container, so the moved buttons keep up with the
+// sticky sidebar, and their menus open beside them.
 function renderMini(p: Person): HTMLElement {
   return h('section', { id: 'lt-mini', class: 'lt-card' }, personHead(p), h('div', { class: 'lt-mini-actions' }));
+}
+
+// While the top card is in view LinkedIn makes the bar inert and aria-hidden, which would
+// disable the moved buttons. Undo that whenever it's set; the rest of the bar stays hidden.
+const awake = new WeakSet<Element>();
+const wake = (bar: Element) => {
+  if (bar.hasAttribute('inert')) bar.removeAttribute('inert');
+  if (bar.hasAttribute('aria-hidden')) bar.removeAttribute('aria-hidden');
+};
+const barWatch = new MutationObserver((records) => records.forEach((r) => wake(r.target as Element)));
+
+function keepBarAwake(page: Element) {
+  const bar = page.querySelector('[role="toolbar"]');
+  if (!bar || awake.has(bar)) return;
+  awake.add(bar);
+  wake(bar);
+  barWatch.observe(bar, { attributes: true, attributeFilter: ['inert', 'aria-hidden'] });
 }
 
 export function updateProfile(onChange: () => void): void {
@@ -102,6 +121,7 @@ export function updateProfile(onChange: () => void): void {
   const aside = page?.querySelector('#workspace aside');
   document.documentElement.toggleAttribute('data-lt-hide-suggestions', config().hideProfileSuggestions);
   if (!page || !main || !aside?.firstElementChild) return;
+  keepBarAwake(page);
   // After LinkedIn's (hidden) content.
   const mini = sync('lt-mini', readPerson(page), renderMini, aside.firstElementChild);
   const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, mini ?? aside.firstElementChild);

@@ -48,12 +48,13 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
   & > footer, & > aside > div:first-child { display: none !important; }
   & #lt-dashboard { margin: 0; }
 }
-/* Scrolled past the top card, LinkedIn slides in a bar with your name and actions. Our mini
-   profile shows at the top of the sidebar instead, and the bar's action buttons move onto
-   its empty row: still LinkedIn's buttons, so their menus open where they now are. */
+/* Scrolled past the top card, LinkedIn slides in a bar with your name and actions. It stays
+   hidden; our mini profile is always at the top of the sidebar, and the bar's action buttons
+   move onto its empty row (profile.ts keeps them enabled): still LinkedIn's buttons, so
+   their menus open where they now are. */
 [data-sdui-screen$=".profile.Profile"] {
   & [role="toolbar"] { visibility: hidden; transform: none !important; will-change: auto !important; }
-  & [role="toolbar"]:not([aria-hidden="true"]) div:has(> [data-display-contents] > button svg#ellipses-horizontal-fill-small) {
+  & [role="toolbar"] div:has(> [data-display-contents] > button svg#ellipses-horizontal-fill-small) {
     visibility: visible;
     position: fixed;
     position-anchor: --lt-mini-actions;
@@ -65,7 +66,6 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
     justify-content: flex-end;
     gap: 8px;
   }
-  &:has([role="toolbar"][aria-hidden="true"]) #lt-mini { display: none; }
 }
 #lt-mini { margin: 0; }
 #lt-mini .lt-mini-actions { height: 32px; margin: 0 16px 16px; anchor-name: --lt-mini-actions; }
