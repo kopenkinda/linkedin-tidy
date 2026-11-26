@@ -3,6 +3,7 @@ import { h } from './dom';
 // Behaviour switches, saved per browser and grouped by the page they change. Read at the
 // moment they matter, so a change applies without a reload.
 export const PAGES = [
+  { id: 'general', label: 'General' },
   { id: 'feed', label: 'Feed' },
   { id: 'profile', label: 'Profile' },
 ] as const;
@@ -10,6 +11,7 @@ export const PAGES = [
 export type PageId = (typeof PAGES)[number]['id'];
 
 export const OPTIONS = [
+  { page: 'general', key: 'quietHome', default: true, label: 'Quiet Home', hint: 'No notification dot on Home in the header.' },
   { page: 'feed', key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
   { page: 'feed', key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
   { page: 'feed', key: 'hideAds', default: true, label: 'Hide promoted posts', hint: 'Ads in the feed that look like regular posts.' },

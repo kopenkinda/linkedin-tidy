@@ -374,6 +374,11 @@ header button:has(svg#bars-outline-medium) svg#bars-outline-medium,
 header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
 #global-nav .global-nav__more .global-nav__primary-link-text svg { display: none; }
 
+/* Quiet Home (setting): no notification dot on Home. React: an empty span next to the
+   house icon; Ember: the usual badge. */
+html[data-lt-quiet-home] header nav :is(a, button):has(svg[id^="house-"]) span:has(> svg) > :not(svg),
+html[data-lt-quiet-home] #global-nav a[href*="/feed/"] .notification-badge { display: none; }
+
 /* What we add to the More menu: Learning, then a For Business group. */
 .lt-more { margin-top: 4px; padding-block: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }
 .lt-more > a, .lt-more summary { display: flex; justify-content: space-between; padding: 8px 16px; color: var(--lt-fg); text-decoration: none; cursor: pointer; }

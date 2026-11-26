@@ -31,6 +31,7 @@ function update() {
     sync('lt-settings', true, () => renderSettings(update), games ?? profile ?? identity);
     refreshSettings();
   }
+  document.documentElement.toggleAttribute('data-lt-quiet-home', config().quietHome);
   updateProfile(update);
   placeCompose();
   enhanceComposer();
