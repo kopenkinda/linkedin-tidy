@@ -29,6 +29,16 @@ export function installComposerDock(): void {
     }
     return showModal.call(this);
   };
+  // The locked Network tab (see placeCompose) keeps pointer events so its tooltip shows;
+  // stop its clicks before React sees them.
+  for (const type of ['click', 'keydown'] as const) {
+    window.addEventListener(type, (e) => {
+      if (e instanceof KeyboardEvent && e.key !== 'Enter' && e.key !== ' ') return;
+      if (!(e.target as Element).closest?.('[data-lt-locked]')) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }, true);
+  }
 }
 
 const boxSize = new ResizeObserver(([entry]) => {
@@ -119,6 +129,20 @@ export function placeCompose(): void {
   if (el.hasAttribute('data-docked') && !document.querySelector('dialog[data-lt-docked][open]')) {
     el.removeAttribute('data-docked');
     el.style.removeProperty('min-height');
+  }
+  // The docked composer belongs to the For you feed: switching to Network unmounts it and
+  // the post is gone. Lock that tab while writing.
+  const network = feedTabs()[1];
+  const writing = !!document.querySelector('dialog[data-lt-docked][open]');
+  if (network && network.hasAttribute('data-lt-locked') !== writing) {
+    network.toggleAttribute('data-lt-locked', writing);
+    if (writing) {
+      network.setAttribute('aria-disabled', 'true');
+      network.title = 'Post or close the composer first. Switching feeds would discard your post.';
+    } else {
+      network.removeAttribute('aria-disabled');
+      network.removeAttribute('title');
+    }
   }
   if (returnToNetwork && !document.querySelector(`dialog[open] ${COMPOSE}`)) {
     returnToNetwork = false;
