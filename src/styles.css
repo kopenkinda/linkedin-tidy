@@ -221,6 +221,8 @@ dialog[data-lt-docked][open] {
      DOM), below the global header it slides under when the feed scrolls. */
   z-index: 1;
 }
+/* Loading skeleton: held at the composer's height (composer.ts) so the page doesn't jump. */
+dialog[data-lt-docked][open]:not(:has([data-sdui-screen$="ShareCompose"])) { height: var(--lt-composer-height, 290px); overflow: hidden; }
 header:has(nav a[href*="/jobs/"]) { position: relative; z-index: 2; }
 
 /* LinkedIn's composer, restyled (docked or popup). Hooks are structural: the screen id,

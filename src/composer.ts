@@ -40,13 +40,22 @@ export function installComposerDock(): void {
   }
 }
 
+// While the composer loads, LinkedIn shows a skeleton much taller than the composer, so
+// the page jumped down and back up. styles.css holds the skeleton at the composer's
+// height: the first size it rendered at (empty, before any typing), remembered per page.
+let measured = false;
 const boxSize = new ResizeObserver(([entry]) => {
   const box = document.getElementById('lt-compose');
   const height = entry?.borderBoxSize[0]?.blockSize;
   if (box && height) box.style.minHeight = `${height}px`;
+  if (height && !measured && entry.target.querySelector(COMPOSE)) {
+    measured = true;
+    document.documentElement.style.setProperty('--lt-composer-height', `${height}px`);
+  }
 });
 
 function dock(dialog: HTMLDialogElement) {
+  measured = false;
   dialog.setAttribute('data-lt-docked', '');
   document.getElementById('lt-compose')?.setAttribute('data-docked', '');
   boxSize.observe(dialog);
