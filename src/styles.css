@@ -490,6 +490,7 @@ header button:has(svg#bars-outline-medium) svg#caret-down-fill-small,
   & > .scaffold-layout__aside { display: none; }
 }
 body:has(.msg__list-detail) #msg-overlay { display: none; }
+.authentication-outlet:has(.msg__list-detail) { padding-top: 0 !important; }
 .msg-conversations-container__title-row:has(#lt-inboxes) { justify-content: space-between; gap: 8px; }
 #lt-inboxes {
   display: flex; flex: none; align-items: center; gap: 6px; padding-right: 12px; font-family: var(--lt-font); font-size: 13px;

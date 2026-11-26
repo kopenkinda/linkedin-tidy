@@ -374,18 +374,20 @@ document.addEventListener('click', (e) => {
 }, true);
 
 // Languages: LinkedIn gives each one a tall row of its own, shows two, and links the rest to
-// their details page. We list them all, one line each (styles.css hides LinkedIn's rows). With
-// more than two, the rest come from the details page's HTML (LinkedIn's sanitizer empties
-// parsed HTML, hence the pattern: each row's first two lines), read once per profile.
+// their details page. We list them one line each (styles.css hides LinkedIn's rows). With the
+// allLanguages setting, the rest come from the details page's HTML (LinkedIn's sanitizer
+// empties parsed HTML, hence the pattern: each row's first two lines), read once per profile.
+// Off by default: requests LinkedIn didn't make can get the account flagged for scraping.
 const allLanguages = new Map<string, string[][] | null>();
 
 function readLanguages(card: Element, rows: Element[]): string[][] {
   const more = [...card.querySelectorAll<HTMLAnchorElement>('a[href$="/details/languages/"]')].find((a) => text(a));
-  // "Show all 3 languages", with its divider.
+  const all = config().allLanguages;
+  // "Show all 3 languages", with its divider: only needed when we don't load the rest.
   const footer = more?.parentElement?.parentElement;
-  if (footer) footer.style.display = 'none';
+  if (footer) footer.style.display = all ? 'none' : '';
   const shown = rows.map((row) => [...row.querySelectorAll('p')].slice(0, 2).map(text));
-  if (!more) return shown;
+  if (!more || !all) return shown;
   const url = more.href;
   if (!allLanguages.has(url)) {
     allLanguages.set(url, null);

@@ -18,6 +18,7 @@ export const OPTIONS = [
   { page: 'feed', key: 'hideGames', default: false, label: 'Hide LinkedIn games', hint: 'The puzzles row in the sidebar.' },
   { page: 'feed', key: 'collapseFiltered', default: true, label: 'Show muted posts as a line', hint: 'Off hides posts with muted words completely.' },
   { page: 'profile', key: 'hideProfileSuggestions', default: true, label: 'Hide “Suggested for you”', hint: 'LinkedIn’s prompts to add to your profile, and people to follow.' },
+  { page: 'profile', key: 'allLanguages', default: false, label: 'Show all languages', hint: 'Loads a profile’s full language list in the background instead of two and “Show all”. Risky: the extra requests can make LinkedIn warn you about scraping. If it does, turn this off.' },
   { page: 'profile', key: 'blurContacts', default: true, label: 'Blur contact info', hint: 'Emails, phone numbers and links stay blurred until you click them. Safer when sharing your screen.' },
 ] as const;
 
