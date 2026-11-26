@@ -2,8 +2,7 @@ import { h } from './dom';
 
 // The global header, on both frontends: the React header on most pages and the older
 // Ember one (#global-nav) on messaging. styles.css lines the header up with the page
-// and hides For Business and Learning; their links move into the More menu here. The
-// footer links live in the settings menu (settings.ts).
+// and hides For Business and Learning; their links move into the More menu here.
 
 // LinkedIn sizes the page container at breakpoints (1128px on wide windows, 960px below
 // that, ...). Measure it rather than copying the breakpoints, and give the header row

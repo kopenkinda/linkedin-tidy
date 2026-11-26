@@ -101,8 +101,13 @@ const FOOTER: [group: string, links: [label: string, href: string][]][] = [
   ]],
 ];
 
+// The settings menu: one button in a sidebar that opens a popover with the theme and
+// LinkedIn Plus on top, then the footer links. It only depends on being placed, so any
+// page's sidebar can host it: insert renderMenu() once (sync() with constant data), then
+// call refreshMenu() on each update to reflect the current theme.
+
 /** `onChange` re-runs the page update so a theme or config change applies right away. */
-function renderMenu(onChange: () => void): HTMLElement {
+export function renderMenu(onChange: () => void): HTMLElement {
   const option = (value: Theme, label: string, svg: Icon) =>
     h('button', { type: 'button', role: 'radio', 'aria-label': label, title: label, 'data-theme': value }, icon(svg));
   const menu = h('div', { id: 'lt-menu', popover: '' },
@@ -133,22 +138,14 @@ function renderMenu(onChange: () => void): HTMLElement {
       onChange();
     }
   });
-  return menu;
+  return h('div', { id: 'lt-settings' },
+    h('button', { type: 'button', popovertarget: 'lt-menu' }, h('span', {}, 'Settings'), icon(ICONS.settings)),
+    menu);
 }
 
-// One header button, at the end of the row (where For Business sat), opens the menu: theme
-// and LinkedIn Plus on top, then the footer links. It's in the header, so every page has it.
-const HEADER_ROW = 'header div:has(> div > nav a[href*="/jobs/"]), #global-nav .global-nav-v2__content';
-
-export function placeMenu(onChange: () => void): void {
-  const row = document.querySelector(HEADER_ROW);
-  if (!row) return;
-  const button = document.getElementById('lt-menu-button') ??
-    h('button', { id: 'lt-menu-button', type: 'button', popovertarget: 'lt-menu' }, icon(ICONS.settings), h('span', {}, 'Settings'));
-  if (row.lastElementChild !== button) row.append(button);
-  const menu = document.getElementById('lt-menu') ?? document.body.appendChild(renderMenu(onChange));
+export function refreshMenu(): void {
   const theme = themePreference();
-  for (const option of menu.querySelectorAll<HTMLElement>('[data-theme]')) {
+  for (const option of document.querySelectorAll<HTMLElement>('#lt-menu [data-theme]')) {
     const checked = String(option.dataset.theme === theme);
     if (option.getAttribute('aria-checked') !== checked) option.setAttribute('aria-checked', checked);
   }
