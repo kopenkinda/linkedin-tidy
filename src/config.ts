@@ -3,7 +3,7 @@ import { h } from './dom';
 // Behaviour switches, saved per browser. Read at the moment they matter, so a change
 // applies without a reload.
 export const OPTIONS = [
-  { key: 'inlineComposer', default: true, label: 'Write posts in the feed', hint: 'Off opens LinkedIn’s popup composer instead.' },
+  { key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
   { key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
 ] as const;
 

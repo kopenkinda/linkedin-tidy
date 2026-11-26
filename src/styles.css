@@ -119,29 +119,39 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 #lt-config input[role="switch"]:focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 2px; }
 
 /* Composer. Our box replaces LinkedIn's sharebox (hidden, but kept: its "Start a post"
-   button is how we open LinkedIn's composer). Posting fills that composer in the
-   background while it is invisible; it only shows if something goes wrong. */
+   button opens LinkedIn's composer). Docked, the composer is a non-modal dialog pinned
+   onto our box; our box grows to its height (composer.ts). */
 [data-testid="mainFeed"] > :has(#draft-text-replaceable-component) { display: none !important; }
-#lt-compose { display: grid; gap: 8px; padding: 12px; }
+#lt-compose { display: grid; gap: 8px; padding: 12px; anchor-name: --lt-compose; }
+#lt-compose[data-docked] > * { visibility: hidden; }
 #lt-compose button, #lt-compose .lt-compose-bar a { all: unset; box-sizing: border-box; cursor: pointer; }
-#lt-compose textarea { box-sizing: border-box; width: 100%; min-height: 40px; max-height: 50vh; field-sizing: content; resize: none; margin: 0; padding: 9px 12px; border: 1px solid var(--lt-border); border-radius: 8px; background: transparent; color: var(--lt-fg); font: inherit; }
-#lt-compose textarea::placeholder { color: var(--lt-muted-fg); }
-#lt-compose textarea:focus { outline: none; border-color: var(--lt-muted-fg); }
+#lt-compose .lt-compose-input { padding: 10px 12px; border: 1px solid var(--lt-border); border-radius: 8px; color: var(--lt-muted-fg); cursor: text; }
+#lt-compose .lt-compose-input:hover { background: var(--lt-muted); }
 #lt-compose .lt-compose-bar { display: flex; align-items: center; gap: 4px; }
-#lt-compose .lt-compose-as { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; padding-left: 4px; color: var(--lt-muted-fg); }
-#lt-compose select { padding: 4px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--lt-fg); font: inherit; font-weight: 500; cursor: pointer; }
-#lt-compose select:hover { background: var(--lt-muted); }
 #lt-compose .lt-compose-bar :is(button, a) { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; font-weight: 500; }
 #lt-compose .lt-compose-bar :is(button, a):hover { background: var(--lt-muted); }
-#lt-compose .lt-compose-bar .lt-compose-post { margin-left: 4px; padding: 6px 14px; background: var(--lt-primary); color: var(--lt-card); }
-#lt-compose .lt-compose-bar .lt-compose-post:hover { background: var(--lt-primary); opacity: 0.9; }
-#lt-compose .lt-compose-post:disabled { opacity: 0.5; cursor: default; }
-#lt-compose :is(button, a, select):focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
+#lt-compose :is(button, a):focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 1px; }
 #lt-compose svg { width: 16px; height: 16px; color: var(--lt-muted-fg); }
-#lt-compose .lt-compose-status { margin: 0; padding-left: 4px; color: var(--lt-muted-fg); }
-#lt-compose .lt-compose-status:empty { display: none; }
-html[data-lt-ghost] :is(dialog[open]:has([data-sdui-screen$="ShareCompose"]), [popover]:has(input[type="radio"])) { opacity: 0 !important; pointer-events: none !important; }
-html[data-lt-ghost] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backdrop { background: transparent !important; }
+dialog[open]:has([data-sdui-screen$="ShareCompose"]) { border-radius: var(--lt-radius); }
+dialog[data-lt-docked][open] {
+  position: fixed;
+  position-anchor: --lt-compose;
+  inset: auto;
+  top: anchor(top);
+  left: anchor(left);
+  width: anchor-size(width);
+  max-width: none;
+  margin: 0;
+  transform: none;
+  translate: none;
+  box-shadow: none;
+  border: 1px solid var(--lt-border);
+  background: var(--lt-card);
+  /* Non-modal, so it shares the page's layers: above the feed (which comes later in the
+     DOM), below the global header it slides under when the feed scrolls. */
+  z-index: 1;
+}
+header:has(nav a[href*="/jobs/"]) { position: relative; z-index: 2; }
 
 /* Footer links, folded into the nav's More menu */
 .lt-about { margin-top: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }

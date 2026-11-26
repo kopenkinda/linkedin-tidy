@@ -10,7 +10,8 @@
       "js": [
         "linkedin.user.js"
       ],
-      "run_at": "document_start"
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ]
 }

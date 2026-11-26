@@ -5,7 +5,7 @@
 //   named `componentkey`s, `data-testid`s, aria-labels and hrefs, never classes.
 //   `data-view-name` looks useful but is behind a feature flag and often absent.
 // - Ember (messaging page, floating chat): readable classes and named design tokens.
-import { placeCompose } from './composer';
+import { installComposerDock, placeCompose } from './composer';
 import { addStyle, sync } from './dom';
 import { addFooterToMoreMenu } from './nav';
 import { applyPalette } from './palette';
@@ -28,8 +28,7 @@ function update() {
     const games = sync('lt-games', readGames(), renderGames, profile ?? identity);
     sync('lt-settings', { theme: themePreference() }, (data) => renderSettings(data, update), games ?? profile ?? identity);
   }
-  // You and the pages you manage: the same list LinkedIn's "Post as" switcher offers.
-  placeCompose(me?.name ? [me.name, ...me.pages.map((p) => p.name)] : []);
+  placeCompose();
   addFooterToMoreMenu();
 }
 
@@ -39,6 +38,7 @@ if (!window.__linkedinTidy) {
   addStyle('lt-style', css);
   applyPalette();
   installPickerGuard();
+  installComposerDock();
   followOsTheme();
   // A dialog can close without any DOM change; `close` doesn't bubble, so listen in capture.
   document.addEventListener('close', () => update(), true);
