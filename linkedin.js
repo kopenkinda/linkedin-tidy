@@ -120,6 +120,25 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 #lt-settings button:hover { color: var(--lt-fg); }
 #lt-settings button[aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
 #lt-settings svg { width: 16px; height: 16px; }
+#lt-settings .lt-plus { width: 100%; height: auto; justify-content: space-between; display: flex; padding: 4px 4px 4px 0; font: inherit; }
+
+/* LinkedIn Plus config dialog */
+#lt-config { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--lt-border); border-radius: var(--lt-radius); background: var(--lt-card); color: var(--lt-fg); font-family: var(--lt-font); font-size: 14px; line-height: 20px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.15); }
+#lt-config::backdrop { background: rgb(0 0 0 / 0.5); }
+#lt-config header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 4px 20px; }
+#lt-config h2 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+#lt-config .lt-config-desc { margin: 0; padding: 0 20px 12px; color: var(--lt-muted-fg); }
+#lt-config .lt-config-close { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
+#lt-config .lt-config-close:hover { background: var(--lt-muted); color: var(--lt-fg); }
+#lt-config svg { width: 16px; height: 16px; }
+#lt-config .lt-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-top: 1px solid var(--lt-border); cursor: pointer; }
+#lt-config .lt-option span { display: grid; gap: 2px; }
+#lt-config .lt-option small { font-size: 14px; color: var(--lt-muted-fg); }
+#lt-config input[role="switch"] { appearance: none; flex: none; position: relative; width: 32px; height: 18px; margin: 0; border-radius: 9999px; background: var(--lt-border); cursor: pointer; transition: background 0.15s; }
+#lt-config input[role="switch"]::before { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 9999px; background: var(--lt-card); transition: translate 0.15s; }
+#lt-config input[role="switch"]:checked { background: var(--lt-primary); }
+#lt-config input[role="switch"]:checked::before { translate: 14px 0; }
+#lt-config input[role="switch"]:focus-visible { outline: 2px solid var(--lt-muted-fg); outline-offset: 2px; }
 
 /* Composer. Our box replaces LinkedIn's sharebox (hidden, but still clicked through).
    When opened from it, LinkedIn's composer dialog is anchored onto our box with no
@@ -217,6 +236,8 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
     moon: [['path', { d: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' }]],
     image: [['rect', { width: 18, height: 18, x: 3, y: 3, rx: 2 }], ['circle', { cx: 9, cy: 9, r: 2 }], ['path', { d: 'm21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21' }]],
     article: [['path', { d: 'M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z' }], ['path', { d: 'M14 2v4a2 2 0 0 0 2 2h4' }], ['path', { d: 'M16 13H8' }], ['path', { d: 'M16 17H8' }], ['path', { d: 'M10 9H8' }]],
+    sliders: [['path', { d: 'M20 7h-9' }], ['path', { d: 'M14 17H5' }], ['circle', { cx: 17, cy: 17, r: 3 }], ['circle', { cx: 7, cy: 7, r: 3 }]],
+    close: [['path', { d: 'M18 6 6 18' }], ['path', { d: 'm6 6 12 12' }]],
     monitor: [['rect', { width: 20, height: 14, x: 2, y: 3, rx: 2 }], ['path', { d: 'M8 21h8' }], ['path', { d: 'M12 17v4' }]],
     settings: [['path', { d: 'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z' }], ['circle', { cx: 12, cy: 12, r: 3 }]],
   };
@@ -387,6 +408,82 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
     return el;
   }
 
+  // --- LinkedIn Plus config ---------------------------------------------------------
+
+  // Behaviour switches, saved per browser. Read at the moment they matter, so a change
+  // applies without a reload.
+  const CONFIG_KEY = 'linkedin-plus';
+  const OPTIONS = [
+    { key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Instead of LinkedIn’s centered popup.' },
+    { key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
+  ];
+
+  // LinkedIn wraps Storage.prototype so only keys on its tracker allowlist can be read or
+  // written; anything else silently returns null and is reported in an audit event. A
+  // throwaway iframe still has the browser's own methods.
+  let nativeStorage;
+  function storage() {
+    if (!nativeStorage) {
+      const frame = h('iframe', { hidden: '' });
+      document.documentElement.append(frame);
+      const { getItem, setItem } = frame.contentWindow.Storage.prototype;
+      frame.remove();
+      nativeStorage = { get: (k) => getItem.call(localStorage, k), set: (k, v) => setItem.call(localStorage, k, v) };
+    }
+    return nativeStorage;
+  }
+
+  function config() {
+    let saved = {};
+    try { saved = JSON.parse(storage().get(CONFIG_KEY)) ?? {}; } catch {}
+    return Object.fromEntries(OPTIONS.map((o) => [o.key, saved[o.key] ?? o.default]));
+  }
+
+  function setConfig(key, value) {
+    storage().set(CONFIG_KEY, JSON.stringify({ ...config(), [key]: value }));
+  }
+
+  function openConfig() {
+    let dialog = document.getElementById('lt-config');
+    if (!dialog) {
+      const current = config();
+      dialog = h('dialog', { id: 'lt-config', 'aria-labelledby': 'lt-config-title' },
+        h('header', {},
+          h('h2', { id: 'lt-config-title' }, 'LinkedIn Plus'),
+          h('button', { type: 'button', class: 'lt-config-close', 'aria-label': 'Close' }, icon(ICONS.close))),
+        h('p', { class: 'lt-config-desc' }, 'Tweaks on top of LinkedIn. Saved in this browser.'),
+        OPTIONS.map((o) => h('label', { class: 'lt-option' },
+          h('span', {}, h('strong', {}, o.label), h('small', {}, o.hint)),
+          h('input', { type: 'checkbox', role: 'switch', 'data-key': o.key, checked: current[o.key] || null }))));
+      dialog.addEventListener('change', (e) => setConfig(e.target.dataset.key, e.target.checked));
+      // Close on the X or a click on the backdrop (the dialog element itself).
+      dialog.addEventListener('click', (e) => {
+        if (e.target === dialog || e.target.closest('.lt-config-close')) dialog.close();
+      });
+      document.body.append(dialog);
+    }
+    dialog.showModal();
+  }
+
+  // LinkedIn's Photo, Video and Media buttons call input.click() on a file input the
+  // moment the upload step opens, which forces the OS file picker. That click is
+  // untrusted, so we cancel it when it follows a media button. LinkedIn then shows
+  // "Loading" until the picker reports back, so we report a dismissed picker (`cancel`)
+  // once its click handling is done; the screen settles on "Upload from computer".
+  let lastMediaClick = 0;
+  document.addEventListener('click', (e) => {
+    if (e.isTrusted) {
+      const control = e.target.closest?.('button, [role="button"], a');
+      const isMedia = control?.matches('[data-action="media"]') || control?.querySelector('svg#image-outline-medium, svg#video-outline-medium');
+      lastMediaClick = isMedia ? Date.now() : 0;
+    } else if (e.target instanceof HTMLInputElement && e.target.type === 'file' && Date.now() - lastMediaClick < 5000 && !config().instantFilePicker) {
+      const input = e.target;
+      e.preventDefault();
+      lastMediaClick = 0;
+      setTimeout(() => input.dispatchEvent(new Event('cancel', { bubbles: true })));
+    }
+  }, true);
+
   // --- Quick settings ---------------------------------------------------------------
 
   // LinkedIn keeps the theme per device in two cookies and calls no API. Its own
@@ -428,8 +525,10 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
         h('div', { role: 'radiogroup', 'aria-label': 'Theme' },
           option('light', 'Light', ICONS.sun),
           option('dark', 'Dark', ICONS.moon),
-          option('system', 'System', ICONS.monitor))));
+          option('system', 'System', ICONS.monitor))),
+      h('button', { type: 'button', class: 'lt-plus', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)));
     root.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="config"]')) return openConfig();
       const value = e.target.closest('[data-theme]')?.dataset.theme;
       if (value && value !== themePreference()) setTheme(value);
     });
@@ -460,7 +559,7 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
     const start = document.getElementById('draft-text-replaceable-component')?.closest('[role="button"]');
     if (!start) return;
     document.getElementById('lt-compose').scrollIntoView({ block: 'nearest' });
-    document.documentElement.setAttribute('data-lt-inline', '');
+    if (config().inlineComposer) document.documentElement.setAttribute('data-lt-inline', '');
     composer = { state: 'pending', since: Date.now() };
     start.click();
     if (then) waitFor(() => document.querySelector(COMPOSE_DIALOG), then);
@@ -470,7 +569,7 @@ html[data-lt-inline] dialog[open]:has([data-sdui-screen$="ShareCompose"])::backd
     const dialog = document.querySelector(COMPOSE_DIALOG);
     if (dialog && composer.state === 'pending') {
       composer = { state: 'open', since: Date.now() };
-      composerSize.observe(dialog);
+      if (document.documentElement.hasAttribute('data-lt-inline')) composerSize.observe(dialog);
     } else if (!dialog && (composer.state === 'open' || (composer.state === 'pending' && Date.now() - composer.since > 4000))) {
       composer = { state: 'idle', since: 0 };
       composerSize.disconnect();
