@@ -6,6 +6,7 @@
 //   `data-view-name` looks useful but is behind a feature flag and often absent.
 // - Ember (messaging page, floating chat): readable classes and named design tokens.
 import { enhanceComposer, installComposerDock, placeCompose } from './composer';
+import { config } from './config';
 import { addStyle, sync } from './dom';
 import { installMutedReveal, markPosts } from './feed';
 import { extendMoreMenu, matchPageWidth } from './nav';
@@ -25,7 +26,7 @@ function update() {
   const me = identity && readProfile(identity);
   if (identity) {
     const profile = sync('lt-profile', me, renderProfile, identity);
-    const games = sync('lt-games', readGames(), renderGames, profile ?? identity);
+    const games = sync('lt-games', config().hideGames ? null : readGames(), renderGames, profile ?? identity);
     sync('lt-settings', true, () => renderSettings(update), games ?? profile ?? identity);
     refreshSettings();
   }

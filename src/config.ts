@@ -6,6 +6,7 @@ export const OPTIONS = [
   { key: 'inlineComposer', default: true, label: 'Open the composer in the feed', hint: 'Off opens it as LinkedIn’s popup.' },
   { key: 'hideAds', default: true, label: 'Hide promoted posts', hint: 'Ads in the feed that look like regular posts.' },
   { key: 'instantFilePicker', default: false, label: 'Open the file picker right away', hint: 'When adding a photo or video. Off shows the upload screen first.' },
+  { key: 'hideGames', default: false, label: 'Hide LinkedIn games', hint: 'The puzzles row in the sidebar.' },
   { key: 'collapseFiltered', default: true, label: 'Show muted posts as a line', hint: 'Off hides posts with muted words completely.' },
 ] as const;
 
