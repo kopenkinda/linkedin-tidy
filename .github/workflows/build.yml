@@ -1,0 +1,48 @@
+# Typechecks and builds on every push and pull request. Pushes to main also publish the
+# build to the dist branch: the userscript (the README's install link, and what
+# Tampermonkey checks for updates) and the extension as a zip.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm build
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+      - name: Package the extension
+        run: cd dist && zip -r ../linkedin-tidy.zip manifest.json linkedin.user.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linkedin-tidy
+          path: linkedin-tidy.zip
+      - name: Publish to the dist branch
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir publish
+          cp dist/linkedin.user.js publish/linkedin-tidy.user.js
+          cp linkedin-tidy.zip publish/
+          cd publish
+          git init -q -b dist
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "Build ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" dist

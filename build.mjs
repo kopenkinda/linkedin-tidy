@@ -3,12 +3,23 @@
 import * as esbuild from 'esbuild';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
-const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+const pkg = JSON.parse(await readFile('package.json', 'utf8'));
+// CI appends its run number, so every published build is newer than the last: Tampermonkey
+// only updates a script whose @version went up. Chrome takes up to four numbers too.
+const version = process.env.BUILD_NUMBER ? `${pkg.version}.${process.env.BUILD_NUMBER}` : pkg.version;
+
+// CI publishes the script to the dist branch (.github/workflows/build.yml).
+const repo = 'https://github.com/kopenkinda/linkedin-tidy';
+const published = 'https://raw.githubusercontent.com/kopenkinda/linkedin-tidy/dist/linkedin-tidy.user.js';
 
 const banner = `// ==UserScript==
 // @name         LinkedIn Tidy
+// @namespace    ${repo}
 // @version      ${version}
 // @description  Two-column, shadcn-styled LinkedIn without the clutter.
+// @homepageURL  ${repo}
+// @updateURL    ${published}
+// @downloadURL  ${published}
 // @match        https://www.linkedin.com/*
 // @run-at       document-start
 // @grant        none
