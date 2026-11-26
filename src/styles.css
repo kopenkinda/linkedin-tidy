@@ -65,13 +65,23 @@ aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-p
 :is([data-testid="mainFeed"], [data-testid="NetworkFeedListCollection"]) [role="listitem"] {
   border-radius: var(--lt-radius);
 
-  /* Context line: one muted line, no divider under it. Scoped to the post (the parent of
-     its "Feed post" heading): the "Select feed view" row uses the same divider. */
+  /* Context line ("X likes this"): an inset pill holding the avatar and text, no divider
+     under it. Scoped to the post (the parent of its "Feed post" heading): the "Select feed
+     view" row uses the same divider. */
   & div:has(> h2) > hr[role="presentation"] { display: none; }
   & div:has(> h2) > div:has(+ hr[role="presentation"]) {
     padding-bottom: 0;
-    & figure { width: 20px; height: 20px; }
-    & p { font-size: 12px; line-height: 16px; color: var(--lt-muted-fg); }
+    & > div:first-child {
+      flex: none;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 12px 3px 3px;
+      border: 1px solid var(--lt-border);
+      border-radius: 9999px;
+      background: var(--lt-bg);
+    }
+    & figure { width: 24px; height: 24px; }
+    & p { font-size: 13px; line-height: 18px; color: var(--lt-fg); }
   }
 
   /* Author header: drop the connection degree ("• 3rd+", "• Following") but keep the
