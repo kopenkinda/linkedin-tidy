@@ -38,7 +38,7 @@ body[data-color-scheme="dark"] { color-scheme: dark; }
 #workspace div:has(> section[aria-label="Primary content"] [componentkey="feed-tab-host_tab-bar"]) > aside[aria-label="Aside"] { display: none !important; }
 
 /* Left rail: only our profile card and games row. */
-aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games, #lt-settings) { display: none !important; }
+aside[aria-label="Sidebar"] :has(> #feedIdentityModuleComponentRef) > :not(#lt-profile, #lt-games) { display: none !important; }
 
 /* Feed tabs (For you / Network): underline tabs across the feed, under our composer.
    The white card is on an inner wrapper; the tabs keep LinkedIn's own hover. */
@@ -166,14 +166,6 @@ html[data-lt-collapse-filtered] [data-lt-muted]:not([data-lt-revealed]) {
 #lt-games span { font-weight: 500; font-variant-numeric: tabular-nums; }
 
 /* Quick settings: bare rows in the column, no card */
-#lt-settings { display: grid; gap: 4px; padding: 0 4px 0 8px; font-family: var(--lt-font); font-size: 14px; line-height: 20px; color: var(--lt-muted-fg); }
-#lt-settings .lt-setting { display: flex; align-items: center; justify-content: space-between; }
-#lt-settings [role="radiogroup"] { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--lt-border); border-radius: 8px; }
-#lt-settings button { display: grid; place-items: center; width: 28px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
-#lt-settings button:hover { color: var(--lt-fg); }
-#lt-settings button[aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
-#lt-settings svg { width: 16px; height: 16px; }
-#lt-settings .lt-plus { width: 100%; height: auto; justify-content: space-between; display: flex; padding: 4px 4px 4px 0; font: inherit; }
 
 /* LinkedIn Plus config dialog */
 #lt-config { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--lt-border); border-radius: var(--lt-radius); background: var(--lt-card); color: var(--lt-fg); font-family: var(--lt-font); font-size: 14px; line-height: 20px; box-shadow: 0 10px 30px rgb(0 0 0 / 0.15); }
@@ -326,10 +318,19 @@ header button[aria-label="More"] svg#bars-outline-medium,
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.401 8a1.4 1.4 0 1 1 2.8 0 1.4 1.4 0 0 1-2.8 0M6.6 8a1.4 1.4 0 1 1 2.802 0A1.4 1.4 0 0 1 6.6 8M1.8 8a1.4 1.4 0 1 1 2.802 0 1.4 1.4 0 0 1-2.801 0z'/%3E%3C/svg%3E") center / 24px no-repeat;
   & > * { display: none; }
 }
+/* The settings menu button (settings.ts), last in the row, drawn like a nav item. */
+#lt-menu-button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  width: 72px; height: 52px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--lt-muted-fg); font-family: var(--lt-font); font-size: 12px; line-height: 16px;
+  anchor-name: --lt-menu-button;
+  & svg { width: 24px; height: 24px; stroke-width: 1.5; }
+  &:hover { color: var(--lt-fg); }
+}
 header button[aria-label="More"] svg#caret-down-fill-small,
 #global-nav .global-nav__more .global-nav__primary-link-text svg { display: none; }
 
-/* What we add to the More menu: Learning, then For Business and About & legal groups. */
+/* What we add to the More menu: Learning, then a For Business group. */
 .lt-more { margin-top: 4px; padding-block: 4px; border-top: 1px solid var(--lt-border); font-family: var(--lt-font); font-size: 14px; line-height: 20px; }
 .lt-more > a, .lt-more summary { display: flex; justify-content: space-between; padding: 8px 16px; color: var(--lt-fg); text-decoration: none; cursor: pointer; }
 .lt-more summary { list-style: none; }
@@ -338,3 +339,32 @@ header button[aria-label="More"] svg#caret-down-fill-small,
 .lt-more details[open] summary::after { content: "▴"; }
 .lt-more details a { display: block; padding: 6px 16px 6px 28px; color: var(--lt-muted-fg); text-decoration: none; }
 .lt-more :is(a, summary):hover { background: var(--lt-muted); color: var(--lt-fg); }
+
+/* The settings menu: theme and LinkedIn Plus, then the footer links. A popover, so it
+   closes on Escape or a click elsewhere; pinned under its header button. */
+#lt-menu {
+  position: fixed; inset: auto; margin: 0;
+  position-anchor: --lt-menu-button; top: calc(anchor(bottom) + 4px); right: anchor(right);
+  box-sizing: border-box; width: 320px; padding: 8px 0;
+  border: 1px solid var(--lt-border); border-radius: var(--lt-radius);
+  background: var(--lt-card); color: var(--lt-fg); box-shadow: 0 10px 30px rgb(0 0 0 / 0.15);
+  font-family: var(--lt-font); font-size: 14px; line-height: 20px;
+  & .lt-menu-row { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 16px; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  & button.lt-menu-row:hover { background: var(--lt-muted); }
+  & [role="radiogroup"] { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--lt-border); border-radius: 8px; }
+  & [role="radio"] { display: grid; place-items: center; width: 28px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--lt-muted-fg); cursor: pointer; }
+  & [role="radio"]:hover { color: var(--lt-fg); }
+  & [role="radio"][aria-checked="true"] { background: var(--lt-muted); color: var(--lt-fg); }
+  & svg { width: 16px; height: 16px; }
+  & hr { margin: 8px 0; border: 0; border-top: 1px solid var(--lt-border); }
+  /* Help and LinkedIn stack in the first column, Legal fills the second. */
+  & .lt-menu-links { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: dense; gap: 12px 16px; padding: 4px 16px; }
+  & .lt-menu-links > :nth-child(2) { grid-column: 2; grid-row: span 2; }
+  & h3 { margin: 0 0 4px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--lt-muted-fg); }
+  & .lt-menu-links a { display: block; padding: 2px 0; color: var(--lt-fg); text-decoration: none; }
+  & .lt-menu-links a:hover { text-decoration: underline; }
+  & .lt-menu-copy { margin: 8px 0 0; padding: 0 16px; font-size: 12px; line-height: 16px; color: var(--lt-muted-fg); }
+}
+
+/* LinkedIn's own footers (page bottom and right rail): their links are in the menu. */
+footer:has(a[href*="about.linkedin.com"]) { display: none !important; }

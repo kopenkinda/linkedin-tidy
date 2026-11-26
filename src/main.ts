@@ -11,7 +11,7 @@ import { installMutedReveal, markPosts } from './feed';
 import { extendMoreMenu, matchPageWidth } from './nav';
 import { installPickerGuard } from './picker';
 import { readGames, readProfile, renderGames, renderProfile } from './rail';
-import { followOsTheme, renderSettings, themePreference } from './settings';
+import { followOsTheme, placeMenu } from './settings';
 import css from './styles.css';
 
 declare global {
@@ -25,9 +25,9 @@ function update() {
   const me = identity && readProfile(identity);
   if (identity) {
     const profile = sync('lt-profile', me, renderProfile, identity);
-    const games = sync('lt-games', readGames(), renderGames, profile ?? identity);
-    sync('lt-settings', { theme: themePreference() }, (data) => renderSettings(data, update), games ?? profile ?? identity);
+    sync('lt-games', readGames(), renderGames, profile ?? identity);
   }
+  placeMenu(update);
   placeCompose();
   enhanceComposer();
   extendMoreMenu();

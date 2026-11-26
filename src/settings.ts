@@ -79,21 +79,52 @@ function openConfig(onChange: () => void) {
   dialog.showModal();
 }
 
+// LinkedIn's footer links (in the page footer and the right rail), grouped. Its "Business
+// Services" list is the More menu's For Business group (nav.ts).
+const FOOTER: [group: string, links: [label: string, href: string][]][] = [
+  ['Help', [
+    ['Help Center', 'https://www.linkedin.com/help/linkedin'],
+    ['Accessibility', 'https://www.linkedin.com/accessibility'],
+  ]],
+  ['Legal', [
+    ['Privacy Policy', 'https://www.linkedin.com/legal/privacy-policy'],
+    ['User Agreement', 'https://www.linkedin.com/legal/user-agreement'],
+    ['Cookie Policy', 'https://www.linkedin.com/legal/cookie-policy'],
+    ['Copyright Policy', 'https://www.linkedin.com/legal/copyright-policy'],
+    ['Pages Terms', 'https://www.linkedin.com/legal/l/linkedin-pages-terms'],
+    ['Ad Choices', 'https://www.linkedin.com/help/linkedin/answer/62931'],
+  ]],
+  ['LinkedIn', [
+    ['About', 'https://about.linkedin.com/'],
+    ['Careers', 'https://careers.linkedin.com/'],
+    ['Get the app', 'https://www.linkedin.com/mobile/'],
+  ]],
+];
+
 /** `onChange` re-runs the page update so a theme or config change applies right away. */
-export function renderSettings({ theme }: { theme: Theme }, onChange: () => void): HTMLElement {
+function renderMenu(onChange: () => void): HTMLElement {
   const option = (value: Theme, label: string, svg: Icon) =>
-    h('button', { type: 'button', role: 'radio', 'aria-checked': String(theme === value), 'aria-label': label, title: label, 'data-theme': value }, icon(svg));
-  const root = h('div', { id: 'lt-settings' },
-    h('div', { class: 'lt-setting' },
+    h('button', { type: 'button', role: 'radio', 'aria-label': label, title: label, 'data-theme': value }, icon(svg));
+  const menu = h('div', { id: 'lt-menu', popover: '' },
+    h('div', { class: 'lt-menu-row' },
       h('span', {}, 'Theme'),
       h('div', { role: 'radiogroup', 'aria-label': 'Theme' },
         option('light', 'Light', ICONS.sun),
         option('dark', 'Dark', ICONS.moon),
         option('system', 'System', ICONS.monitor))),
-    h('button', { type: 'button', class: 'lt-plus', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)));
-  root.addEventListener('click', (e) => {
+    h('button', { type: 'button', class: 'lt-menu-row', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)),
+    h('hr'),
+    h('div', { class: 'lt-menu-links' },
+      FOOTER.map(([group, links]) => h('div', {},
+        h('h3', {}, group),
+        links.map(([label, href]) => h('a', { href }, label))))),
+    h('p', { class: 'lt-menu-copy' }, `LinkedIn Corporation © ${new Date().getFullYear()}`));
+  menu.addEventListener('click', (e) => {
     const target = e.target as Element;
-    if (target.closest('[data-action="config"]')) return openConfig(onChange);
+    if (target.closest('[data-action="config"]')) {
+      menu.hidePopover();
+      return openConfig(onChange);
+    }
     const value = target.closest<HTMLElement>('[data-theme]')?.dataset.theme as Theme | undefined;
     // No "already selected" shortcut: the cookie can match while the page shows something
     // else (another tab changed it), and re-applying is harmless.
@@ -102,5 +133,23 @@ export function renderSettings({ theme }: { theme: Theme }, onChange: () => void
       onChange();
     }
   });
-  return root;
+  return menu;
+}
+
+// One header button, at the end of the row (where For Business sat), opens the menu: theme
+// and LinkedIn Plus on top, then the footer links. It's in the header, so every page has it.
+const HEADER_ROW = 'header div:has(> div > nav a[href*="/jobs/"]), #global-nav .global-nav-v2__content';
+
+export function placeMenu(onChange: () => void): void {
+  const row = document.querySelector(HEADER_ROW);
+  if (!row) return;
+  const button = document.getElementById('lt-menu-button') ??
+    h('button', { id: 'lt-menu-button', type: 'button', popovertarget: 'lt-menu' }, icon(ICONS.settings), h('span', {}, 'Settings'));
+  if (row.lastElementChild !== button) row.append(button);
+  const menu = document.getElementById('lt-menu') ?? document.body.appendChild(renderMenu(onChange));
+  const theme = themePreference();
+  for (const option of menu.querySelectorAll<HTMLElement>('[data-theme]')) {
+    const checked = String(option.dataset.theme === theme);
+    if (option.getAttribute('aria-checked') !== checked) option.setAttribute('aria-checked', checked);
+  }
 }
