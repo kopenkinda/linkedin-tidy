@@ -307,17 +307,29 @@ function renderMini(m: Mini): HTMLElement {
     const action = fake && m.actions[Number(fake.dataset.index)];
     if (!page) return;
     if (fake && action) void press(page, action, fake);
-    if (org) topOrgs(page)[Number(org.dataset.org)]?.click();
-    if (real) (real === 'bell' ? bellLink : contactLink)(page)?.click();
+    if (org) void fromTop(() => topOrgs(page)[Number(org.dataset.org)]).then((el) => el?.click());
+    if (real) void fromTop(() => (real === 'bell' ? bellLink : contactLink)(page)).then((el) => el?.click());
   });
   return card;
+}
+
+// Back from a details page ("Show all"), LinkedIn restores the scroll position and leaves the
+// cards above it as empty placeholders until you scroll up. The mini profile and dashboard then
+// show what was read last time; a click that needs the top card scrolls up to it first.
+const seen = new Map<string, { mini?: Mini; dashboard?: Dashboard }>();
+
+async function fromTop<T>(find: () => T | null | undefined): Promise<T | undefined> {
+  const found = find();
+  if (found) return found;
+  document.querySelector('#workspace')?.scrollTo({ top: 0 });
+  return until(find, 3000).catch(() => undefined);
 }
 
 // Clicks the real action. One in the ⋯ menu is picked from the menu, unseen. A menu that opens
 // (⋯, Open to) appears next to the button that was clicked, which may be scrolled off screen;
 // pin it to our stand-in instead (styles.css, [data-lt-pinned]).
 async function press(page: Element, action: Action, fake: HTMLElement) {
-  const more = moreButton(page);
+  const more = await fromTop(() => moreButton(page));
   let m: HTMLElement | undefined;
   if (action.from === 'menu') {
     if (!more) return;
@@ -414,11 +426,17 @@ export function updateProfile(onChange: () => void): void {
   void probeMenu(page);
   showAllLanguages(page);
   // After LinkedIn's (hidden) content.
-  const mini = sync('lt-mini', readMini(page), renderMini, aside.firstElementChild);
+  const last = seen.get(location.pathname) ?? {};
+  const miniData = readMini(page) ?? last.mini;
+  // The dashboard's numbers come from the top of the page, its settings from the side.
+  const read = readDashboard(main, aside);
+  const dashboardData = read && !read.stats.length && last.dashboard?.stats.length ? { ...read, title: last.dashboard.title, stats: last.dashboard.stats } : read ?? last.dashboard;
+  seen.set(location.pathname, { mini: miniData ?? undefined, dashboard: dashboardData ?? undefined });
+  const mini = sync('lt-mini', miniData, renderMini, aside.firstElementChild);
   // On someone else's profile the mini profile stands in for LinkedIn's top card (styles.css).
   // Yours keeps it: that's where you edit your intro, photo and cover.
   document.documentElement.toggleAttribute('data-lt-mini-only', !!mini && !isOwn(page));
-  const dashboard = sync('lt-dashboard', readDashboard(main, aside), renderDashboard, mini ?? aside.firstElementChild);
+  const dashboard = sync('lt-dashboard', dashboardData, renderDashboard, mini ?? aside.firstElementChild);
   sync('lt-settings', true, () => renderSettings(onChange), dashboard ?? mini ?? aside.firstElementChild);
   refreshSettings();
 }
