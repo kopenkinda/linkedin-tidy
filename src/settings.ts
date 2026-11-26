@@ -101,35 +101,33 @@ const FOOTER: [group: string, links: [label: string, href: string][]][] = [
   ]],
 ];
 
-// The settings menu: one button in a sidebar that opens a popover with the theme and
-// LinkedIn Plus on top, then the footer links. It only depends on being placed, so any
-// page's sidebar can host it: insert renderMenu() once (sync() with constant data), then
-// call refreshMenu() on each update to reflect the current theme.
+// The sidebar's settings block: the theme toggle, LinkedIn Plus, and "Help & legal", which
+// opens the footer links in a popover. It only depends on being placed, so any page's
+// sidebar can host it: insert renderSettings() once (sync() with constant data), then call
+// refreshSettings() on each update to reflect the current theme.
 
 /** `onChange` re-runs the page update so a theme or config change applies right away. */
-export function renderMenu(onChange: () => void): HTMLElement {
+export function renderSettings(onChange: () => void): HTMLElement {
   const option = (value: Theme, label: string, svg: Icon) =>
     h('button', { type: 'button', role: 'radio', 'aria-label': label, title: label, 'data-theme': value }, icon(svg));
-  const menu = h('div', { id: 'lt-menu', popover: '' },
-    h('div', { class: 'lt-menu-row' },
+  const root = h('div', { id: 'lt-settings' },
+    h('div', { class: 'lt-setting' },
       h('span', {}, 'Theme'),
       h('div', { role: 'radiogroup', 'aria-label': 'Theme' },
         option('light', 'Light', ICONS.sun),
         option('dark', 'Dark', ICONS.moon),
         option('system', 'System', ICONS.monitor))),
-    h('button', { type: 'button', class: 'lt-menu-row', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)),
-    h('hr'),
-    h('div', { class: 'lt-menu-links' },
-      FOOTER.map(([group, links]) => h('div', {},
-        h('h3', {}, group),
-        links.map(([label, href]) => h('a', { href }, label))))),
-    h('p', { class: 'lt-menu-copy' }, `LinkedIn Corporation © ${new Date().getFullYear()}`));
-  menu.addEventListener('click', (e) => {
+    h('button', { type: 'button', class: 'lt-plus', 'data-action': 'config' }, h('span', {}, 'LinkedIn Plus'), icon(ICONS.sliders)),
+    h('button', { type: 'button', class: 'lt-plus', popovertarget: 'lt-links' }, h('span', {}, 'Help & legal'), icon(ICONS.info)),
+    h('div', { id: 'lt-links', popover: '' },
+      h('div', { class: 'lt-links-groups' },
+        FOOTER.map(([group, links]) => h('div', {},
+          h('h3', {}, group),
+          links.map(([label, href]) => h('a', { href }, label))))),
+      h('p', {}, `LinkedIn Corporation © ${new Date().getFullYear()}`)));
+  root.addEventListener('click', (e) => {
     const target = e.target as Element;
-    if (target.closest('[data-action="config"]')) {
-      menu.hidePopover();
-      return openConfig(onChange);
-    }
+    if (target.closest('[data-action="config"]')) return openConfig(onChange);
     const value = target.closest<HTMLElement>('[data-theme]')?.dataset.theme as Theme | undefined;
     // No "already selected" shortcut: the cookie can match while the page shows something
     // else (another tab changed it), and re-applying is harmless.
@@ -138,14 +136,12 @@ export function renderMenu(onChange: () => void): HTMLElement {
       onChange();
     }
   });
-  return h('div', { id: 'lt-settings' },
-    h('button', { type: 'button', popovertarget: 'lt-menu' }, h('span', {}, 'Settings'), icon(ICONS.settings)),
-    menu);
+  return root;
 }
 
-export function refreshMenu(): void {
+export function refreshSettings(): void {
   const theme = themePreference();
-  for (const option of document.querySelectorAll<HTMLElement>('#lt-menu [data-theme]')) {
+  for (const option of document.querySelectorAll<HTMLElement>('#lt-settings [data-theme]')) {
     const checked = String(option.dataset.theme === theme);
     if (option.getAttribute('aria-checked') !== checked) option.setAttribute('aria-checked', checked);
   }
