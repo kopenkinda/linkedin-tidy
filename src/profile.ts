@@ -373,16 +373,19 @@ document.addEventListener('click', (e) => {
   value.setAttribute('data-lt-revealed', '');
 }, true);
 
-// Languages: LinkedIn shows two and links the rest to their details page, whose HTML has them
-// all. Read the names and levels from there (LinkedIn's sanitizer empties parsed HTML, hence
-// the pattern: each row's first two lines) and add the missing ones as copies of LinkedIn's
-// last row, so they look the same. Once per profile, and only when there are more to show.
+// Languages: LinkedIn gives each one a tall row of its own, shows two, and links the rest to
+// their details page. We list them all, one line each (styles.css hides LinkedIn's rows). With
+// more than two, the rest come from the details page's HTML (LinkedIn's sanitizer empties
+// parsed HTML, hence the pattern: each row's first two lines), read once per profile.
 const allLanguages = new Map<string, string[][] | null>();
 
-function showAllLanguages(page: Element) {
-  const card = page.querySelector('[componentkey*="LanguageTopLevel"]');
-  const more = [...(card?.querySelectorAll<HTMLAnchorElement>('a[href$="/details/languages/"]') ?? [])].find((a) => text(a));
-  if (!card || !more) return;
+function readLanguages(card: Element, rows: Element[]): string[][] {
+  const more = [...card.querySelectorAll<HTMLAnchorElement>('a[href$="/details/languages/"]')].find((a) => text(a));
+  // "Show all 3 languages", with its divider.
+  const footer = more?.parentElement?.parentElement;
+  if (footer) footer.style.display = 'none';
+  const shown = rows.map((row) => [...row.querySelectorAll('p')].slice(0, 2).map(text));
+  if (!more) return shown;
   const url = more.href;
   if (!allLanguages.has(url)) {
     allLanguages.set(url, null);
@@ -395,24 +398,19 @@ function showAllLanguages(page: Element) {
         rerender();
       })
       .catch(() => undefined);
-    return;
   }
-  const all = allLanguages.get(url);
-  const rows = card.querySelectorAll('[componentkey^="entity-collection-item"]');
+  return allLanguages.get(url) ?? shown;
+}
+
+function renderLanguages(languages: string[][]): HTMLElement {
+  return h('dl', { id: 'lt-languages' }, languages.map(([name, level]) => [h('dt', {}, name), h('dd', {}, level)]));
+}
+
+function syncLanguages(page: Element) {
+  const card = page.querySelector('[componentkey*="LanguageTopLevel"]');
+  const rows = [...(card?.querySelectorAll('[componentkey^="entity-collection-item"]') ?? [])];
   const last = rows[rows.length - 1];
-  if (!all || !last || card.querySelector('[data-lt-copy]') || all.length <= rows.length) return;
-  for (const [name = '', level = ''] of all.slice(rows.length).reverse()) {
-    const copy = last.cloneNode(true) as Element;
-    copy.setAttribute('data-lt-copy', '');
-    copy.removeAttribute('componentkey');
-    const [p1, p2] = copy.querySelectorAll('p');
-    if (p1) p1.textContent = name;
-    if (p2) p2.textContent = level;
-    last.after(copy);
-  }
-  // "Show all 3 languages", with its divider.
-  const footer = more.parentElement?.parentElement;
-  if (footer) footer.style.display = 'none';
+  if (card && last) sync('lt-languages', readLanguages(card, rows), renderLanguages, last);
 }
 
 export function updateProfile(onChange: () => void): void {
@@ -424,7 +422,7 @@ export function updateProfile(onChange: () => void): void {
   if (!page || !main || !aside?.firstElementChild) return;
   rerender = onChange;
   void probeMenu(page);
-  showAllLanguages(page);
+  syncLanguages(page);
   // After LinkedIn's (hidden) content.
   const last = seen.get(location.pathname) ?? {};
   const miniData = readMini(page) ?? last.mini;

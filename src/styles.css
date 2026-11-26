@@ -69,6 +69,13 @@ html[data-lt-mini-only] [data-sdui-screen$=".profile.Profile"] #workspace sectio
   & [componentkey*="CardsBelowActivityPart"]:has([componentkey$="_Interests"]),
   & > :has([componentkey$="_Interests"]) ~ * > * { order: 2; }
 }
+/* Languages as one compact list (profile.ts) instead of LinkedIn's tall rows. */
+[componentkey*="LanguageTopLevel"]:has(#lt-languages) [componentkey^="entity-collection-item"] { display: none; }
+#lt-languages {
+  display: grid; grid-template-columns: max-content 1fr; gap: 6px 24px; margin: 4px 0 20px; font-size: 14px; line-height: 20px;
+  & dt { color: var(--lt-fg); font-weight: 600; }
+  & dd { margin: 0; color: var(--lt-muted-fg); }
+}
 /* Sales Insights, while it's an upsell: its links go to Premium's sales page. With Premium
    it's the real thing and stays. */
 [data-sdui-screen$=".profile.Profile"] [componentkey$="SalesInsightsOrHighlights"]:has(a[href*="/premium/products/"]) { display: none !important; }
